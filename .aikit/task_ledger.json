@@ -3,12 +3,13 @@
   "active_task": {
     "task_id": "dupefinder-001",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1793254011.4563513,
     "owner": "opencode:1",
     "started_by": "opencode:1",
-    "continuations": []
+    "continuations": [],
+    "completed_at": 1793254035.6145473
   },
   "checkpoints": [
     {
@@ -48,6 +49,16 @@
       "status": "in_progress",
       "timestamp": 1793254011.4563513,
       "timestamp_str": "2026-10-29 09:06:51",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-001",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'dupefinder-001' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793254035.614549,
+      "timestamp_str": "2026-10-29 09:07:15",
       "agent": "opencode:1"
     }
   ]
