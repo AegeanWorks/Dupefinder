@@ -1,0 +1,142 @@
+# Codebase Map & Symbol Catalog 🗺️
+
+> **AUTO-GENERATED & VERIFIED BY `scripts/update_knowledge_base.py`**
+> This document provides an automated, up-to-date registry of all modules, classes, and exported functions across this repository.
+
+---
+
+## 📊 Codebase Metrics
+- **Total Python Modules**: `10`
+- **Total Classes**: `3`
+- **Total Top-Level Functions**: `12`
+- **Total Class Methods**: `26`
+- **Total Source Lines**: `452`
+
+---
+
+## 📦 Modules & Exported Symbols
+
+### [`dupefinder/__init__.py`](dupefinder/__init__.py)
+> *Find byte-identical files without changing them.*
+
+**Size**: `6` lines (`222` bytes)
+
+---
+
+### [`dupefinder/__main__.py`](dupefinder/__main__.py)
+> *Run dupefinder with `python -m dupefinder`.*
+
+**Size**: `6` lines (`140` bytes)
+
+---
+
+### [`dupefinder/cli.py`](dupefinder/cli.py)
+> *Command-line entry point for dupefinder.*
+
+**Size**: `65` lines (`2624` bytes)
+
+**Functions:**
+- `def _non_negative(value)` - *Parse a byte count that cannot be negative.*
+- `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
+- `def main(argv)` - *Run one scan; returns the process exit code.*
+
+---
+
+### [`dupefinder/hashing.py`](dupefinder/hashing.py)
+> *Streaming SHA-256 for candidate files.*
+
+**Size**: `15` lines (`456` bytes)
+
+**Functions:**
+- `def hash_file(path, chunk_size)` - *Return the SHA-256 hex digest of `path`, reading it in bounded chunks.*
+
+---
+
+### [`dupefinder/model.py`](dupefinder/model.py)
+> *Data reported for one set of byte-identical files.*
+
+**Size**: `18` lines (`431` bytes)
+
+**Classes:**
+- `class DuplicateGroup` - *Files with the same size and SHA-256 digest.*
+  - Property `.wasted_bytes` - *Space reclaimable by keeping one copy.*
+
+---
+
+### [`dupefinder/report.py`](dupefinder/report.py)
+> *Human-readable and JSON renderings of duplicate groups.*
+
+**Size**: `60` lines (`2065` bytes)
+
+**Functions:**
+- `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
+- `def render_text(groups, roots)` - *A readable report: one block per duplicate set, then a summary.*
+- `def render_json(groups, roots)` - *A stable JSON document for scripts.*
+
+---
+
+### [`dupefinder/scanner.py`](dupefinder/scanner.py)
+> *Read-only filesystem walk and duplicate grouping.*
+
+**Size**: `94` lines (`3546` bytes)
+
+**Functions:**
+- `def scan_files(roots, *, include_hidden, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
+- `def _walk(root, include_hidden, on_error, found)` - *Append regular files under one directory, skipping hidden and symlinked entries.*
+- `def _raise(error)` - *Default walk error handler: surface the failure instead of hiding it.*
+- `def _report(error, on_error)` - *Send a recoverable per-file error to the caller, or re-raise when it has no handler.*
+- `def find_duplicates(roots, *, min_size, include_hidden, on_error)` - *Group byte-identical files by size then SHA-256; hard links count once.*
+
+---
+
+### [`tests/__init__.py`](tests/__init__.py)
+> *Tests for dupefinder.*
+
+**Size**: `1` lines (`28` bytes)
+
+---
+
+### [`tests/test_cli.py`](tests/test_cli.py)
+> *Behavior of the command-line interface.*
+
+**Size**: `84` lines (`3108` bytes)
+
+**Classes:**
+- `class CliTests`
+  - Method `.setUp()`
+  - Method `.write(relative, data)`
+  - Method `.run_main(*args)`
+  - Method `.test_json_report_lists_duplicate_groups()`
+  - Method `.test_human_report_summarizes_reclaimable_space()`
+  - Method `.test_no_duplicates_message()`
+  - Method `.test_missing_path_exits_2()`
+  - Method `.test_fail_on_duplicates_exits_1()`
+  - Method `.test_fail_on_duplicates_without_duplicates_exits_0()`
+  - Method `.test_min_size_filters_small_files()`
+  - Method `.test_invalid_min_size_exits_2()`
+
+---
+
+### [`tests/test_scanner.py`](tests/test_scanner.py)
+> *Behavior of the read-only scanner.*
+
+**Size**: `103` lines (`4025` bytes)
+
+**Classes:**
+- `class ScannerTests`
+  - Method `.setUp()`
+  - Method `.write(relative, data)`
+  - Method `.test_finds_identical_files_and_ignores_unique_ones()`
+  - Method `.test_same_size_different_content_is_not_a_duplicate()`
+  - Method `.test_min_size_filters_small_files()`
+  - Method `.test_hidden_files_are_skipped_unless_requested()`
+  - Method `.test_hidden_root_is_scanned_when_passed_explicitly()`
+  - Method `.test_hard_links_are_counted_once()`
+  - Method `.test_scan_files_returns_a_file_passed_directly()`
+  - Method `.test_scan_files_skips_symlinks()`
+  - Method `.test_missing_root_raises()`
+  - Method `.test_hash_file_matches_hashlib()`
+  - Method `.test_largest_reclaimable_group_is_reported_first()`
+  - Method `.test_format_size()`
+
+---

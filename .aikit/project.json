@@ -11,5 +11,12 @@
   ],
   "gates": {},
   "ui_required": false,
-  "created": "2026-10-29"
+  "created": "2026-10-29",
+  "has_ui": false,
+  "ui_kind": "cli",
+  "ui_evidence": [
+    "dupefinder/cli.py"
+  ],
+  "ui_checked_at": "2026-10-29",
+  "ui_source": "detected"
 }
