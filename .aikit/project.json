@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "name": "dupefinder",
+  "test_command": null,
+  "topics": [
+    "aikit",
+    "aikit-integrated",
+    "source-available",
+    "aegean-license",
+    "commercial-license"
+  ],
+  "gates": {},
+  "ui_required": false,
+  "created": "2026-10-29"
+}
