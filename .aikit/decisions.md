@@ -27,3 +27,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Real scans include build caches, logs and deep trees, and scripts need stable output beyond the human report.
 - **Decision**: Add repeatable `--exclude` globs, `--max-depth`, mutually exclusive `--json`/`--csv` output, and `--version`; filters only remove candidates and never change files.
 - **Consequences**: Users can bound noisy scans and pipe results into spreadsheets or CI. Exclude patterns are case-sensitive and `*` also matches `/`, so a pattern with `/` matches a relative path while a bare name matches any file or folder with that name.
+
+### ADR-003: Incomplete scans fail the run
+
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A filesystem walk can skip an unreadable folder or fail when a root disappears. Reporting success in that state can claim a tree is duplicate-free when an unreadable folder still hides a copy.
+- **Decision**: Print walk and hash failures as `Warning:` lines on stderr, keep the partial report on stdout for diagnosis, and exit `1` whenever any warning occurred. Catch `OSError` around the scan, report a clean `Error:`/`Why:`/`Fix:` message, and exit `1` when a root cannot be read or vanishes mid-scan.
+- **Consequences**: Exit `0` now means a complete scan, so CI and scripts can trust a clean result. Callers must handle exit `1` as either duplicates found under `--fail-on-duplicates` or an incomplete scan; stderr distinguishes the two.

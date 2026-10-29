@@ -7,7 +7,9 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
+from dupefinder import __version__
 from dupefinder.cli import main
 
 
@@ -148,3 +150,44 @@ class CliTests(unittest.TestCase):
             main(["--version"])
         self.assertEqual(caught.exception.code, 0)
         self.assertIn("dupefinder 0.2.0", output.getvalue())
+
+    def test_version_matches_pyproject(self):
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        self.assertIn(f'version = "{__version__}"',
+                      pyproject.read_text(encoding="utf-8"))
+
+    def test_include_hidden_flag_scans_dot_directories(self):
+        self.write(".hidden/a.txt", b"same")
+        self.write(".hidden/b.txt", b"same")
+        code, output, _ = self.run_main(str(self.root))
+        self.assertEqual(code, 0)
+        self.assertIn("No duplicate files found", output)
+        code, output, _ = self.run_main("--include-hidden", str(self.root))
+        self.assertEqual(code, 0)
+        self.assertIn("2 copies", output)
+
+    def test_csv_quotes_paths_with_commas(self):
+        self.write("a,one.txt", b"same")
+        self.write("b,two.txt", b"same")
+        code, output, _ = self.run_main("--csv", str(self.root))
+        rows = list(csv.reader(io.StringIO(output)))
+        self.assertEqual(code, 0)
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(rows[1][4].endswith("a,one.txt"))
+
+    def test_incomplete_scan_exits_1(self):
+        def fake_scan(roots, **kwargs):
+            kwargs["on_error"](PermissionError("denied"))
+            return []
+
+        with mock.patch("dupefinder.cli.find_duplicates", side_effect=fake_scan):
+            code, _, errors = self.run_main(str(self.root))
+        self.assertEqual(code, 1)
+        self.assertIn("Warning: denied", errors)
+
+    def test_scan_failure_exits_1(self):
+        with mock.patch("dupefinder.cli.find_duplicates",
+                        side_effect=FileNotFoundError("gone")):
+            code, _, errors = self.run_main(str(self.root))
+        self.assertEqual(code, 1)
+        self.assertIn("Error: scan failed: gone", errors)

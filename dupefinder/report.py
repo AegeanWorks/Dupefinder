@@ -3,8 +3,8 @@
 import csv
 import io
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from dupefinder.model import DuplicateGroup
 
@@ -28,8 +28,8 @@ def render_text(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:
     copies = sum(len(group.paths) - 1 for group in groups)
     wasted = sum(group.wasted_bytes for group in groups)
     lines = [
-        f"Found {len(groups)} duplicate group(s), {copies} redundant file(s), "
-        f"{format_size(wasted)} reclaimable.",
+        (f"Found {len(groups)} duplicate group(s), {copies} redundant file(s), "
+         f"{format_size(wasted)} reclaimable."),
         "",
     ]
     for index, group in enumerate(groups, start=1):

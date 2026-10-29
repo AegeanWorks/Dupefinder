@@ -5,9 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from dupefinder.hashing import hash_file
 from dupefinder.report import format_size
 from dupefinder.scanner import find_duplicates, scan_files
-from dupefinder.hashing import hash_file
 
 
 class ScannerTests(unittest.TestCase):
@@ -125,6 +125,10 @@ class ScannerTests(unittest.TestCase):
         self.assertEqual(len(groups), 1)
         self.assertTrue(all(path.relative_to(self.root).parts[0] != "build"
                             for path in groups[0].paths))
+
+    def test_exclude_can_skip_an_explicit_file(self):
+        path = self.write("one.log", b"x")
+        self.assertEqual(scan_files([path], exclude=["*.log"]), [])
 
     def test_exclude_normalizes_backslashes(self):
         self.write("build/a.tmp", b"same")

@@ -1,11 +1,11 @@
 """Case-sensitive glob filters applied while walking a scan root."""
 
 import fnmatch
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence, Tuple
 
 
-def normalize_patterns(patterns: Sequence[str]) -> Tuple[str, ...]:
+def normalize_patterns(patterns: Sequence[str]) -> tuple[str, ...]:
     """Turn user globs into POSIX-style patterns; backslashes become slashes."""
     return tuple(pattern.replace("\\", "/") for pattern in patterns)
 

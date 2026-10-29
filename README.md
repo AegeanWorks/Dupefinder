@@ -70,15 +70,17 @@ Use it in CI, failing when copies exist:
 python -m dupefinder . --fail-on-duplicates
 ```
 
-`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Hidden files and folders are skipped unless `--include-hidden` is passed; symbolic links are skipped.
+`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped.
 
-`--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--max-depth 1` includes files directly in each root but not subfolders. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
+`--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
 | Exit code | Meaning |
 |---|---|
-| `0` | Scan completed; duplicates may or may not exist |
-| `1` | `--fail-on-duplicates` was passed and duplicates were found |
+| `0` | Scan completed without warnings; duplicates may or may not exist |
+| `1` | `--fail-on-duplicates` was passed and duplicates were found, or the scan was incomplete |
 | `2` | A path does not exist, or an argument is invalid |
+
+A scan is incomplete when a folder or file cannot be read, or a root disappears while it is being scanned. Those errors are printed as `Warning:` lines on stderr, the partial report is still written to stdout, and the run exits `1` so CI cannot mistake a partial scan for a clean one.
 
 ## 🔍 How It Works
 

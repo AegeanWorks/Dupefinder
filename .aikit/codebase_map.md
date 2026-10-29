@@ -9,8 +9,8 @@
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
 - **Total Top-Level Functions**: `15`
-- **Total Class Methods**: `40`
-- **Total Source Lines**: `646`
+- **Total Class Methods**: `46`
+- **Total Source Lines**: `703`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `81` lines (`3433` bytes)
+**Size**: `91` lines (`4009` bytes)
 
 **Functions:**
 - `def _non_negative_int(value)` - *Parse a whole number that cannot be negative.*
@@ -45,7 +45,7 @@
 ### [`dupefinder/filters.py`](dupefinder/filters.py)
 > *Case-sensitive glob filters applied while walking a scan root.*
 
-**Size**: `21` lines (`839` bytes)
+**Size**: `21` lines (`841` bytes)
 
 **Functions:**
 - `def normalize_patterns(patterns)` - *Turn user globs into POSIX-style patterns; backslashes become slashes.*
@@ -77,7 +77,7 @@
 ### [`dupefinder/report.py`](dupefinder/report.py)
 > *Text, JSON and CSV renderings of duplicate groups.*
 
-**Size**: `74` lines (`2614` bytes)
+**Size**: `74` lines (`2626` bytes)
 
 **Functions:**
 - `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
@@ -90,7 +90,7 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `111` lines (`4553` bytes)
+**Size**: `111` lines (`4510` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
@@ -111,7 +111,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `150` lines (`5947` bytes)
+**Size**: `193` lines (`7787` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -133,13 +133,18 @@
   - Method `.test_max_depth_flag_limits_scan()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
+  - Method `.test_version_matches_pyproject()`
+  - Method `.test_include_hidden_flag_scans_dot_directories()`
+  - Method `.test_csv_quotes_paths_with_commas()`
+  - Method `.test_incomplete_scan_exits_1()`
+  - Method `.test_scan_failure_exits_1()`
 
 ---
 
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `162` lines (`6701` bytes)
+**Size**: `166` lines (`6867` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -159,6 +164,7 @@
   - Method `.test_exclude_skips_matching_files()`
   - Method `.test_exclude_prunes_matching_folders()`
   - Method `.test_exclude_matches_relative_paths()`
+  - Method `.test_exclude_can_skip_an_explicit_file()`
   - Method `.test_exclude_normalizes_backslashes()`
   - Method `.test_max_depth_limits_recursion()`
   - Method `.test_max_depth_zero_skips_directory_files()`

@@ -1,8 +1,8 @@
 """Read-only filesystem walk and duplicate grouping."""
 
 import os
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from dupefinder.filters import is_excluded, normalize_patterns
 from dupefinder.hashing import hash_file
@@ -12,10 +12,10 @@ ErrorHandler = Callable[[OSError], None]
 
 
 def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
-               exclude: Sequence[str] = (), max_depth: Optional[int] = None,
-               on_error: Optional[ErrorHandler] = None) -> List[Path]:
+               exclude: Sequence[str] = (), max_depth: int | None = None,
+               on_error: ErrorHandler | None = None) -> list[Path]:
     """Every regular, non-symlink file under `roots`, in stable order."""
-    found: List[Path] = []
+    found: list[Path] = []
     patterns = normalize_patterns(exclude)
     for root in roots:
         root = Path(root)
@@ -30,7 +30,7 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
 
 
 def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],
-          max_depth: Optional[int], on_error: ErrorHandler, found: List[Path]) -> None:
+          max_depth: int | None, on_error: ErrorHandler, found: list[Path]) -> None:
     """Append regular files under one directory, skipping hidden, excluded and symlinked entries."""
     for dirpath, dirnames, filenames in os.walk(root, onerror=on_error, followlinks=False):
         current = Path(dirpath)
@@ -63,7 +63,7 @@ def _raise(error: OSError) -> None:
     raise error
 
 
-def _report(error: OSError, on_error: Optional[ErrorHandler]) -> None:
+def _report(error: OSError, on_error: ErrorHandler | None) -> None:
     """Send a recoverable per-file error to the caller, or re-raise when it has no handler."""
     if on_error is None:
         raise error
@@ -72,11 +72,11 @@ def _report(error: OSError, on_error: Optional[ErrorHandler]) -> None:
 
 def find_duplicates(roots: Sequence[Path], *, min_size: int = 1,
                     include_hidden: bool = False, exclude: Sequence[str] = (),
-                    max_depth: Optional[int] = None,
-                    on_error: Optional[ErrorHandler] = None) -> List[DuplicateGroup]:
+                    max_depth: int | None = None,
+                    on_error: ErrorHandler | None = None) -> list[DuplicateGroup]:
     """Group byte-identical files by size then SHA-256; hard links count once."""
-    by_size: Dict[int, List[Path]] = {}
-    seen_inodes: Set[Tuple[int, int]] = set()
+    by_size: dict[int, list[Path]] = {}
+    seen_inodes: set[tuple[int, int]] = set()
     for path in scan_files(roots, include_hidden=include_hidden, exclude=exclude,
                            max_depth=max_depth, on_error=on_error):
         try:
@@ -92,11 +92,11 @@ def find_duplicates(roots: Sequence[Path], *, min_size: int = 1,
                 continue
             seen_inodes.add(key)
         by_size.setdefault(info.st_size, []).append(path)
-    groups: List[DuplicateGroup] = []
+    groups: list[DuplicateGroup] = []
     for size, paths in by_size.items():
         if len(paths) < 2:
             continue
-        by_digest: Dict[str, List[Path]] = {}
+        by_digest: dict[str, list[Path]] = {}
         for path in paths:
             try:
                 digest = hash_file(path)
