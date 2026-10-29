@@ -3,25 +3,15 @@
   "active_task": {
     "task_id": "dupefinder-005",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1793258956.2866402,
     "owner": "opencode:1",
     "started_by": "opencode:1",
-    "continuations": []
+    "continuations": [],
+    "completed_at": 1793258974.5525901
   },
   "checkpoints": [
-    {
-      "task_id": "dupefinder-001",
-      "phase": "phase 3",
-      "phase_num": 3,
-      "description": "[1/1] Implemented scanner, hashing, reporting, CLI, packaging and tests; 20 tests pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793253956.5082922,
-      "timestamp_str": "2026-10-29 09:05:56",
-      "agent": "opencode:1"
-    },
     {
       "task_id": "dupefinder-001",
       "phase": "phase 4",
@@ -249,6 +239,16 @@
       "status": "in_progress",
       "timestamp": 1793258956.2866402,
       "timestamp_str": "2026-10-29 10:29:16",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'dupefinder-005' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793258974.5525913,
+      "timestamp_str": "2026-10-29 10:29:34",
       "agent": "opencode:1"
     }
   ]
