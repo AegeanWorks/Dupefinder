@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `10`
+- **Total Python Modules**: `11`
 - **Total Classes**: `3`
-- **Total Top-Level Functions**: `12`
-- **Total Class Methods**: `26`
-- **Total Source Lines**: `452`
+- **Total Top-Level Functions**: `15`
+- **Total Class Methods**: `40`
+- **Total Source Lines**: `646`
 
 ---
 
@@ -19,7 +19,7 @@
 ### [`dupefinder/__init__.py`](dupefinder/__init__.py)
 > *Find byte-identical files without changing them.*
 
-**Size**: `6` lines (`222` bytes)
+**Size**: `7` lines (`259` bytes)
 
 ---
 
@@ -33,12 +33,23 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `65` lines (`2624` bytes)
+**Size**: `81` lines (`3433` bytes)
 
 **Functions:**
-- `def _non_negative(value)` - *Parse a byte count that cannot be negative.*
+- `def _non_negative_int(value)` - *Parse a whole number that cannot be negative.*
 - `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
 - `def main(argv)` - *Run one scan; returns the process exit code.*
+
+---
+
+### [`dupefinder/filters.py`](dupefinder/filters.py)
+> *Case-sensitive glob filters applied while walking a scan root.*
+
+**Size**: `21` lines (`839` bytes)
+
+**Functions:**
+- `def normalize_patterns(patterns)` - *Turn user globs into POSIX-style patterns; backslashes become slashes.*
+- `def is_excluded(relative, name, patterns)` - *Whether a file or folder matches one exclude pattern.*
 
 ---
 
@@ -64,28 +75,29 @@
 ---
 
 ### [`dupefinder/report.py`](dupefinder/report.py)
-> *Human-readable and JSON renderings of duplicate groups.*
+> *Text, JSON and CSV renderings of duplicate groups.*
 
-**Size**: `60` lines (`2065` bytes)
+**Size**: `74` lines (`2614` bytes)
 
 **Functions:**
 - `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
 - `def render_text(groups, roots)` - *A readable report: one block per duplicate set, then a summary.*
 - `def render_json(groups, roots)` - *A stable JSON document for scripts.*
+- `def render_csv(groups)` - *One CSV row per duplicate path, with a header, for spreadsheets and scripts.*
 
 ---
 
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `94` lines (`3546` bytes)
+**Size**: `111` lines (`4553` bytes)
 
 **Functions:**
-- `def scan_files(roots, *, include_hidden, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
-- `def _walk(root, include_hidden, on_error, found)` - *Append regular files under one directory, skipping hidden and symlinked entries.*
+- `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
+- `def _walk(root, include_hidden, patterns, max_depth, on_error, found)` - *Append regular files under one directory, skipping hidden, excluded and symlinked entries.*
 - `def _raise(error)` - *Default walk error handler: surface the failure instead of hiding it.*
 - `def _report(error, on_error)` - *Send a recoverable per-file error to the caller, or re-raise when it has no handler.*
-- `def find_duplicates(roots, *, min_size, include_hidden, on_error)` - *Group byte-identical files by size then SHA-256; hard links count once.*
+- `def find_duplicates(roots, *, min_size, include_hidden, exclude, max_depth, on_error)` - *Group byte-identical files by size then SHA-256; hard links count once.*
 
 ---
 
@@ -99,7 +111,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `84` lines (`3108` bytes)
+**Size**: `150` lines (`5947` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -114,13 +126,20 @@
   - Method `.test_fail_on_duplicates_without_duplicates_exits_0()`
   - Method `.test_min_size_filters_small_files()`
   - Method `.test_invalid_min_size_exits_2()`
+  - Method `.test_invalid_max_depth_exits_2()`
+  - Method `.test_csv_report_has_a_header_and_one_row_per_path()`
+  - Method `.test_exclude_flag_filters_files()`
+  - Method `.test_exclude_can_be_repeated()`
+  - Method `.test_max_depth_flag_limits_scan()`
+  - Method `.test_csv_and_json_are_mutually_exclusive()`
+  - Method `.test_version_prints_the_package_version()`
 
 ---
 
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `103` lines (`4025` bytes)
+**Size**: `162` lines (`6701` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -137,6 +156,13 @@
   - Method `.test_missing_root_raises()`
   - Method `.test_hash_file_matches_hashlib()`
   - Method `.test_largest_reclaimable_group_is_reported_first()`
+  - Method `.test_exclude_skips_matching_files()`
+  - Method `.test_exclude_prunes_matching_folders()`
+  - Method `.test_exclude_matches_relative_paths()`
+  - Method `.test_exclude_normalizes_backslashes()`
+  - Method `.test_max_depth_limits_recursion()`
+  - Method `.test_max_depth_zero_skips_directory_files()`
+  - Method `.test_max_depth_zero_keeps_an_explicit_file()`
   - Method `.test_format_size()`
 
 ---

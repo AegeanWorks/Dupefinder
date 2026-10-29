@@ -97,6 +97,65 @@ class ScannerTests(unittest.TestCase):
         groups = find_duplicates([self.root])
         self.assertEqual([group.size for group in groups], [10, 1])
 
+    def test_exclude_skips_matching_files(self):
+        self.write("keep-a.txt", b"same")
+        self.write("keep-b.txt", b"same")
+        self.write("skip-a.log", b"other")
+        self.write("skip-b.log", b"other")
+        groups = find_duplicates([self.root], exclude=["*.log"])
+        self.assertEqual(len(groups), 1)
+        self.assertTrue(all(path.suffix == ".txt" for path in groups[0].paths))
+
+    def test_exclude_prunes_matching_folders(self):
+        self.write("node_modules/a.txt", b"same")
+        self.write("node_modules/b.txt", b"same")
+        self.write("src/a.txt", b"same")
+        self.write("src/b.txt", b"same")
+        groups = find_duplicates([self.root], exclude=["node_modules"])
+        self.assertEqual(len(groups), 1)
+        self.assertTrue(all(path.relative_to(self.root).parts[0] != "node_modules"
+                            for path in groups[0].paths))
+
+    def test_exclude_matches_relative_paths(self):
+        self.write("build/a.tmp", b"same")
+        self.write("build/b.tmp", b"same")
+        self.write("src/a.tmp", b"same")
+        self.write("src/b.tmp", b"same")
+        groups = find_duplicates([self.root], exclude=["build/*"])
+        self.assertEqual(len(groups), 1)
+        self.assertTrue(all(path.relative_to(self.root).parts[0] != "build"
+                            for path in groups[0].paths))
+
+    def test_exclude_normalizes_backslashes(self):
+        self.write("build/a.tmp", b"same")
+        self.write("build/b.tmp", b"same")
+        self.write("src/a.tmp", b"same")
+        self.write("src/b.tmp", b"same")
+        groups = find_duplicates([self.root], exclude=["build\\*.tmp"])
+        self.assertEqual(len(groups), 1)
+        self.assertTrue(all(path.relative_to(self.root).parts[0] != "build"
+                            for path in groups[0].paths))
+
+    def test_max_depth_limits_recursion(self):
+        self.write("root-a.txt", b"same")
+        self.write("root-b.txt", b"same")
+        self.write("sub/deep-a.txt", b"same")
+        self.write("sub/deep-b.txt", b"same")
+        shallow = find_duplicates([self.root], max_depth=1)
+        self.assertEqual(len(shallow), 1)
+        self.assertEqual(len(shallow[0].paths), 2)
+        deep = find_duplicates([self.root], max_depth=2)
+        self.assertEqual(len(deep[0].paths), 4)
+
+    def test_max_depth_zero_skips_directory_files(self):
+        self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        self.assertEqual(find_duplicates([self.root], max_depth=0), [])
+
+    def test_max_depth_zero_keeps_an_explicit_file(self):
+        path = self.write("a.txt", b"x")
+        self.assertEqual(scan_files([path], max_depth=0), [path])
+
     def test_format_size(self):
         self.assertEqual(format_size(0), "0 B")
         self.assertEqual(format_size(1024), "1.0 KiB")

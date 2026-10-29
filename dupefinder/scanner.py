@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
+from dupefinder.filters import is_excluded, normalize_patterns
 from dupefinder.hashing import hash_file
 from dupefinder.model import DuplicateGroup
 
@@ -11,32 +12,46 @@ ErrorHandler = Callable[[OSError], None]
 
 
 def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
+               exclude: Sequence[str] = (), max_depth: Optional[int] = None,
                on_error: Optional[ErrorHandler] = None) -> List[Path]:
     """Every regular, non-symlink file under `roots`, in stable order."""
     found: List[Path] = []
+    patterns = normalize_patterns(exclude)
     for root in roots:
         root = Path(root)
         if not root.exists():
             raise FileNotFoundError(f"path does not exist: {root}")
         if root.is_file():
-            if not root.is_symlink():
+            if not root.is_symlink() and not is_excluded(Path(root.name), root.name, patterns):
                 found.append(root)
             continue
-        _walk(root, include_hidden, on_error or _raise, found)
+        _walk(root, include_hidden, patterns, max_depth, on_error or _raise, found)
     return found
 
 
-def _walk(root: Path, include_hidden: bool, on_error: ErrorHandler, found: List[Path]) -> None:
-    """Append regular files under one directory, skipping hidden and symlinked entries."""
+def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],
+          max_depth: Optional[int], on_error: ErrorHandler, found: List[Path]) -> None:
+    """Append regular files under one directory, skipping hidden, excluded and symlinked entries."""
     for dirpath, dirnames, filenames in os.walk(root, onerror=on_error, followlinks=False):
         current = Path(dirpath)
+        relative_dir = Path(os.path.relpath(current, root))
+        depth = len(relative_dir.parts) if relative_dir != Path(".") else 0
+        if max_depth is not None and depth + 1 > max_depth:
+            dirnames[:] = []
+            continue
         dirnames[:] = sorted(
             name for name in dirnames
             if (include_hidden or not name.startswith("."))
+            and not is_excluded(relative_dir / name, name, patterns)
             and not (current / name).is_symlink()
         )
+        if max_depth is not None and depth + 1 >= max_depth:
+            dirnames[:] = []
         for name in sorted(filenames):
             if not include_hidden and name.startswith("."):
+                continue
+            relative = relative_dir / name
+            if is_excluded(relative, name, patterns):
                 continue
             path = current / name
             if not path.is_symlink():
@@ -56,12 +71,14 @@ def _report(error: OSError, on_error: Optional[ErrorHandler]) -> None:
 
 
 def find_duplicates(roots: Sequence[Path], *, min_size: int = 1,
-                    include_hidden: bool = False,
+                    include_hidden: bool = False, exclude: Sequence[str] = (),
+                    max_depth: Optional[int] = None,
                     on_error: Optional[ErrorHandler] = None) -> List[DuplicateGroup]:
     """Group byte-identical files by size then SHA-256; hard links count once."""
     by_size: Dict[int, List[Path]] = {}
     seen_inodes: Set[Tuple[int, int]] = set()
-    for path in scan_files(roots, include_hidden=include_hidden, on_error=on_error):
+    for path in scan_files(roots, include_hidden=include_hidden, exclude=exclude,
+                           max_depth=max_depth, on_error=on_error):
         try:
             info = path.stat()
         except OSError as error:

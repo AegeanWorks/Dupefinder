@@ -1,5 +1,7 @@
-"""Human-readable and JSON renderings of duplicate groups."""
+"""Text, JSON and CSV renderings of duplicate groups."""
 
+import csv
+import io
 import json
 from pathlib import Path
 from typing import Sequence
@@ -58,3 +60,15 @@ def render_json(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:
         "total_wasted_bytes": sum(group.wasted_bytes for group in groups),
     }
     return json.dumps(payload, indent=2)
+
+
+def render_csv(groups: Sequence[DuplicateGroup]) -> str:
+    """One CSV row per duplicate path, with a header, for spreadsheets and scripts."""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(["sha256", "size", "count", "wasted_bytes", "path"])
+    for group in groups:
+        for path in group.paths:
+            writer.writerow([group.digest, group.size, len(group.paths),
+                             group.wasted_bytes, str(path)])
+    return buffer.getvalue().rstrip("\n")

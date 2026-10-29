@@ -5,19 +5,20 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Sequence
 
-from dupefinder.report import render_json, render_text
+from dupefinder import __version__
+from dupefinder.report import render_csv, render_json, render_text
 from dupefinder.scanner import find_duplicates
 
 
-def _non_negative(value: str) -> int:
-    """Parse a byte count that cannot be negative."""
+def _non_negative_int(value: str) -> int:
+    """Parse a whole number that cannot be negative."""
     try:
         number = int(value)
     except ValueError as error:
         raise argparse.ArgumentTypeError(
-            f"expected a whole number of bytes, got '{value}'") from error
+            f"expected a non-negative whole number, got '{value}'") from error
     if number < 0:
-        raise argparse.ArgumentTypeError("byte count cannot be negative")
+        raise argparse.ArgumentTypeError("value cannot be negative")
     return number
 
 
@@ -29,13 +30,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("paths", nargs="*", metavar="PATH",
                         help="files or folders to scan (default: current folder)")
-    parser.add_argument("--min-size", type=_non_negative, default=1, metavar="BYTES",
+    parser.add_argument("--min-size", type=_non_negative_int, default=1, metavar="BYTES",
                         help="ignore files smaller than BYTES (default: 1)")
+    parser.add_argument("--max-depth", type=_non_negative_int, default=None, metavar="N",
+                        help="scan at most N folder levels below each root")
+    parser.add_argument("--exclude", action="append", metavar="GLOB",
+                        help="skip files or folders matching GLOB; repeatable, case-sensitive")
     parser.add_argument("--include-hidden", action="store_true",
                         help="scan hidden files and folders")
-    parser.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    formats = parser.add_mutually_exclusive_group()
+    formats.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    formats.add_argument("--csv", action="store_true",
+                         help="print one CSV row per duplicate path")
     parser.add_argument("--fail-on-duplicates", action="store_true",
                         help="exit 1 when duplicates are found")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 
@@ -55,11 +64,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         roots,
         min_size=args.min_size,
         include_hidden=args.include_hidden,
+        exclude=args.exclude or (),
+        max_depth=args.max_depth,
         on_error=lambda error: warnings.append(str(error)),
     )
     for warning in warnings:
         print(f"Warning: {warning}", file=sys.stderr)
-    print(render_json(groups, roots) if args.json else render_text(groups, roots))
+    if args.csv:
+        print(render_csv(groups))
+    elif args.json:
+        print(render_json(groups, roots))
+    else:
+        print(render_text(groups, roots))
     if args.fail_on_duplicates and groups:
         return 1
     return 0

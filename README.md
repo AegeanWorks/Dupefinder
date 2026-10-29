@@ -40,6 +40,30 @@ Print a machine-readable report:
 python -m dupefinder . --json
 ```
 
+Export one CSV row per duplicate path:
+
+```bash
+python -m dupefinder . --csv > duplicates.csv
+```
+
+Skip logs and dependency folders:
+
+```bash
+python -m dupefinder . --exclude "*.log" --exclude node_modules
+```
+
+Limit the scan to two folder levels below the root:
+
+```bash
+python -m dupefinder . --max-depth 2
+```
+
+Check the version:
+
+```bash
+python -m dupefinder --version
+```
+
 Use it in CI, failing when copies exist:
 
 ```bash
@@ -47,6 +71,8 @@ python -m dupefinder . --fail-on-duplicates
 ```
 
 `dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Hidden files and folders are skipped unless `--include-hidden` is passed; symbolic links are skipped.
+
+`--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--max-depth 1` includes files directly in each root but not subfolders. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
 | Exit code | Meaning |
 |---|---|
@@ -78,9 +104,10 @@ dupefinder/
 │   ├── __init__.py           <- Public exports
 │   ├── __main__.py           <- `python -m dupefinder` entry point
 │   ├── cli.py                <- Argument parsing and exit codes
+│   ├── filters.py            <- Exclude glob matching
 │   ├── hashing.py            <- Streaming SHA-256
 │   ├── model.py              <- DuplicateGroup data
-│   ├── report.py             <- Text and JSON rendering
+│   ├── report.py             <- Text, JSON and CSV rendering
 │   └── scanner.py            <- Read-only walk and grouping
 ├── tests/
 │   ├── __init__.py
