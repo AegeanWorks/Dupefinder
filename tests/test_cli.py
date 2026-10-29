@@ -217,6 +217,52 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("cannot read exclude file", errors)
 
+    def test_redundant_list_writes_all_but_first_path(self):
+        first = self.write("a.txt", b"same")
+        second = self.write("b.txt", b"same")
+        third = self.write("c.txt", b"same")
+        output = self.root / "redundant.txt"
+        code, _, _ = self.run_main("--redundant-list", str(output), str(self.root))
+        self.assertEqual(code, 0)
+        self.assertEqual(output.read_text(encoding="utf-8").splitlines(),
+                         [str(second), str(third)])
+        self.assertNotIn(str(first), output.read_text(encoding="utf-8"))
+
+    def test_redundant_list_refuses_to_overwrite_a_scanned_file(self):
+        first = self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        code, _, errors = self.run_main("--redundant-list", str(first), str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("already exists", errors)
+        self.assertEqual(first.read_bytes(), b"same")
+
+    def test_redundant_list_is_empty_without_duplicates(self):
+        self.write("only.txt", b"unique")
+        output = self.root / "redundant.txt"
+        code, _, _ = self.run_main("--redundant-list", str(output), str(self.root))
+        self.assertEqual(code, 0)
+        self.assertEqual(output.read_text(encoding="utf-8"), "")
+
+    def test_redundant_list_write_failure_exits_1(self):
+        self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        output = self.root / "missing" / "redundant.txt"
+        code, _, errors = self.run_main("--redundant-list", str(output), str(self.root))
+        self.assertEqual(code, 1)
+        self.assertIn("cannot write redundant list", errors)
+
+    def test_incomplete_scan_does_not_write_redundant_list(self):
+        def fake_scan(roots, **kwargs):
+            kwargs["on_error"](PermissionError("denied"))
+            return []
+
+        output = self.root / "redundant.txt"
+        with mock.patch("dupefinder.cli.find_duplicates", side_effect=fake_scan):
+            code, _, errors = self.run_main("--redundant-list", str(output), str(self.root))
+        self.assertEqual(code, 1)
+        self.assertFalse(output.exists())
+        self.assertIn("refusing to write redundant list", errors)
+
     def test_csv_and_json_are_mutually_exclusive(self):
         errors = io.StringIO()
         with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:
@@ -228,7 +274,7 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output), self.assertRaises(SystemExit) as caught:
             main(["--version"])
         self.assertEqual(caught.exception.code, 0)
-        self.assertIn("dupefinder 0.3.0", output.getvalue())
+        self.assertIn("dupefinder 0.4.0", output.getvalue())
 
     def test_version_matches_pyproject(self):
         pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"

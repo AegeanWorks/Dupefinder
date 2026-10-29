@@ -73,6 +73,14 @@ build/*
 *.log
 ```
 
+Write a review list of redundant copies, keeping the first path in each group:
+
+```bash
+python -m dupefinder . --redundant-list redundant.txt
+```
+
+The list contains one path per line and is created only if it does not already exist. It is not written when the scan is incomplete. `dupefinder` never deletes files; review the list before removing anything.
+
 Limit the scan to two folder levels below the root:
 
 ```bash
@@ -97,11 +105,13 @@ python -m dupefinder . --fail-on-duplicates
 
 `--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--exclude-from FILE` reads one pattern per line, ignores blank lines and lines starting with `#`, and may be repeated. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
+`--redundant-list FILE` writes every path except the first (kept) path in each group to a new file, one path per line. It refuses to overwrite an existing file, including a scanned file.
+
 | Exit code | Meaning |
 |---|---|
 | `0` | Scan completed without warnings; duplicates may or may not exist |
-| `1` | `--fail-on-duplicates` was passed and duplicates were found, or the scan was incomplete |
-| `2` | A path or exclude file does not exist, or an argument is invalid |
+| `1` | `--fail-on-duplicates` was passed and duplicates were found, the scan was incomplete, or the redundant list could not be written |
+| `2` | A path or exclude file does not exist, an output list already exists, or an argument is invalid |
 
 A scan is incomplete when a folder or file cannot be read, or a root disappears while it is being scanned. Those errors are printed as `Warning:` lines on stderr, the partial report is still written to stdout, and the run exits `1` so CI cannot mistake a partial scan for a clean one.
 
@@ -111,6 +121,7 @@ A scan is incomplete when a folder or file cannot be read, or a root disappears 
 2. Group files by exact byte size, since byte-identical files always share a size.
 3. Hash only the groups that contain more than one file, using streaming SHA-256.
 4. Report each duplicate set, largest reclaimable space first.
+5. Optionally write all but the first path in each group to a new redundant list; nothing is deleted.
 
 Hard links share one inode, so they are counted once: deleting one name would not reclaim the space.
 
@@ -132,7 +143,7 @@ dupefinder/
 │   ├── filters.py            <- Exclude globs and exclude-file loading
 │   ├── hashing.py            <- Streaming SHA-256
 │   ├── model.py              <- DuplicateGroup data
-│   ├── report.py             <- Text, JSON and CSV rendering
+│   ├── report.py             <- Text, JSON and CSV rendering; redundant selection
 │   └── scanner.py            <- Read-only walk and grouping
 ├── tests/
 │   ├── __init__.py

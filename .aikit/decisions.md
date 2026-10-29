@@ -43,3 +43,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Requiring raw byte counts and repeating many `--exclude` flags makes real scans error-prone and hard to share across commands.
 - **Decision**: Parse `--min-size` and `--max-size` as whole numbers with optional binary unit suffixes, and add repeatable `--exclude-from FILE` loading one glob per line while ignoring blank lines and `#` comments. Both features only filter candidates; they never modify files.
 - **Consequences**: Users can write `--min-size 1MiB` and keep shared ignore lists in version control. Suffixes are 1024-based and decimal fractions are rejected; an unreadable exclude file exits `2` with a `Why:`/`Fix:` message. The scanner API gains an optional `max_size` bound.
+
+### ADR-005: New-file-only redundant lists
+
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Users need an actionable cleanup list after a scan, but automatic deletion is unsafe and an output path could collide with a scanned file.
+- **Decision**: Add `--redundant-list FILE` writing every path except the first path in each group, one per line. Open the output in exclusive-create mode so an existing file is never overwritten, and never delete or modify scanned files.
+- **Consequences**: Users get a deterministic, reviewable list without weakening the read-only contract. Existing list files must be removed or renamed; an existing output path exits `2`, and a write failure exits `1`. An incomplete scan refuses to write the list, because a partial list could omit or mislabel copies. Text, JSON and CSV reports are unchanged.

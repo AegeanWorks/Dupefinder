@@ -72,3 +72,8 @@ def render_csv(groups: Sequence[DuplicateGroup]) -> str:
             writer.writerow([group.digest, group.size, len(group.paths),
                              group.wasted_bytes, str(path)])
     return buffer.getvalue().rstrip("\n")
+
+
+def redundant_paths(groups: Sequence[DuplicateGroup]) -> list[Path]:
+    """Every path except the first (kept) path in each group."""
+    return [path for group in groups for path in group.paths[1:]]

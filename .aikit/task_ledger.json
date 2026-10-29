@@ -1,34 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "dupefinder-004",
+    "task_id": "dupefinder-005",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793258547.1122885,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793258956.2866402,
     "owner": "opencode:1",
     "started_by": "opencode:1",
-    "continuations": [],
-    "completed_at": 1793258573.3885148
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "dupefinder-001",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Build the dupefinder package, CLI, tests, docs and packaging; verify with aikit check",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793253750.881177,
-      "timestamp_str": "2026-10-29 09:02:30",
-      "agent": "opencode:1",
-      "impact_assessment": {
-        "why": "Give the user a genuinely useful, dependency-free utility while exercising the full AIKit project lifecycle.",
-        "benefits": "Safe duplicate detection with size-first grouping, SHA-256 verification, JSON output and CI-friendly exit codes.",
-        "risks": "contract: new project, no existing API; dependency: standard library only; concurrency: read-only scan with no shared state; state: writes only inside the project",
-        "mitigation": "Keep the public surface small, test each behavior in temp directories, and run the project Phase 4 gates before committing."
-      }
-    },
     {
       "task_id": "dupefinder-001",
       "phase": "phase 3",
@@ -206,6 +188,67 @@
       "status": "completed",
       "timestamp": 1793258573.3885164,
       "timestamp_str": "2026-10-29 10:22:53",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Add --redundant-list FILE for safe cleanup planning; update tests, docs, version and gates",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258741.6311512,
+      "timestamp_str": "2026-10-29 10:25:41",
+      "agent": "opencode:1",
+      "impact_assessment": {
+        "why": "Finding duplicates is useful, but users still need a reviewable list of which copies are redundant without risking automatic deletion.",
+        "benefits": "Users can write one path per redundant copy to a file, keep the first path in each group, and review the list before deleting anything.",
+        "risks": "contract: new output flag and CSV/JSON stay unchanged; dependency: standard library only; concurrency: read-only scan plus one report-file write; state: the output file must never overwrite a scanned file",
+        "mitigation": "Refuse output paths that resolve to scanned files, create an empty list when there are no duplicates, report write failures cleanly, test each path, and run every gate before pushing."
+      }
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[1/1] Implemented --redundant-list with exclusive-create output, ADR-005 and 53 passing tests; Ruff clean and output smoke-tested",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258903.4905155,
+      "timestamp_str": "2026-10-29 10:28:23",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258912.420458,
+      "timestamp_str": "2026-10-29 10:28:32",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[1/1] Safety follow-up: incomplete scans refuse to write a partial redundant list; 54 tests pass, Ruff clean",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258947.5980904,
+      "timestamp_str": "2026-10-29 10:29:07",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-005",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258956.2866402,
+      "timestamp_str": "2026-10-29 10:29:16",
       "agent": "opencode:1"
     }
   ]

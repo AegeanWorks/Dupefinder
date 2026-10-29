@@ -8,7 +8,8 @@ from pathlib import Path
 
 from dupefinder import __version__
 from dupefinder.filters import load_patterns
-from dupefinder.report import render_csv, render_json, render_text
+from dupefinder.model import DuplicateGroup
+from dupefinder.report import redundant_paths, render_csv, render_json, render_text
 from dupefinder.scanner import find_duplicates
 
 _SIZE_PATTERN = re.compile(r"(\d+)\s*([a-z]*)")
@@ -75,10 +76,35 @@ def build_parser() -> argparse.ArgumentParser:
     formats.add_argument("--json", action="store_true", help="print machine-readable JSON")
     formats.add_argument("--csv", action="store_true",
                          help="print one CSV row per duplicate path")
+    parser.add_argument("--redundant-list", metavar="FILE",
+                        help="write redundant paths to a new FILE, keeping the first path "
+                             "in each group")
     parser.add_argument("--fail-on-duplicates", action="store_true",
                         help="exit 1 when duplicates are found")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
+
+
+def _write_redundant_list(path: Path, groups: Sequence[DuplicateGroup]) -> int:
+    """Write all but the first path per group to a new file; return an exit code."""
+    lines = [str(item) for item in redundant_paths(groups)]
+    text = "\n".join(lines)
+    if text:
+        text += "\n"
+    try:
+        with path.open("x", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+    except FileExistsError:
+        print(f"Error: redundant list already exists: {path}", file=sys.stderr)
+        print("Why: dupefinder never overwrites an existing file.", file=sys.stderr)
+        print("Fix: choose a new path or remove the old list.", file=sys.stderr)
+        return 2
+    except OSError as error:
+        print(f"Error: cannot write redundant list: {path}: {error}", file=sys.stderr)
+        print("Why: the output path may be a folder or may not be writable.", file=sys.stderr)
+        print("Fix: choose a writable path for a new file.", file=sys.stderr)
+        return 1
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -134,6 +160,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(render_json(groups, roots))
     else:
         print(render_text(groups, roots))
+    if args.redundant_list:
+        if warnings:
+            print("Error: refusing to write redundant list because the scan was incomplete.",
+                  file=sys.stderr)
+            print("Why: a partial list could omit or mislabel redundant copies.", file=sys.stderr)
+            print("Fix: resolve the scan warnings and rerun.", file=sys.stderr)
+            return 1
+        code = _write_redundant_list(Path(args.redundant_list), groups)
+        if code:
+            return code
     # An incomplete scan must not report success: an unreadable folder can hide the only
     # copy of a duplicate, so warnings fail the run just as --fail-on-duplicates does.
     if warnings or (args.fail_on_duplicates and groups):
