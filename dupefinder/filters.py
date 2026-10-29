@@ -5,6 +5,16 @@ from collections.abc import Sequence
 from pathlib import Path
 
 
+def load_patterns(path: Path) -> list[str]:
+    """Read one exclude glob per line, ignoring blank lines and `#` comments."""
+    patterns: list[str] = []
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        text = line.strip()
+        if text and not text.startswith("#"):
+            patterns.append(text)
+    return patterns
+
+
 def normalize_patterns(patterns: Sequence[str]) -> tuple[str, ...]:
     """Turn user globs into POSIX-style patterns; backslashes become slashes."""
     return tuple(pattern.replace("\\", "/") for pattern in patterns)

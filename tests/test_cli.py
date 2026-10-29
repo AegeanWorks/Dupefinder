@@ -138,6 +138,85 @@ class CliTests(unittest.TestCase):
         self.assertIn("2 copies", output)
         self.assertNotIn(str(self.root / "sub"), output)
 
+    def test_min_size_accepts_binary_suffixes(self):
+        self.write("big-a.bin", b"x" * 1024)
+        self.write("big-b.bin", b"x" * 1024)
+        self.write("small-a.bin", b"x" * 10)
+        self.write("small-b.bin", b"x" * 10)
+        code, output, _ = self.run_main("--json", "--min-size", "1KiB", str(self.root))
+        report = json.loads(output)
+        self.assertEqual(code, 0)
+        self.assertEqual([group["size"] for group in report["groups"]], [1024])
+
+    def test_max_size_filters_large_files(self):
+        self.write("big-a.bin", b"x" * 1024)
+        self.write("big-b.bin", b"x" * 1024)
+        self.write("small-a.bin", b"x" * 10)
+        self.write("small-b.bin", b"x" * 10)
+        code, output, _ = self.run_main("--json", "--max-size", "10", str(self.root))
+        report = json.loads(output)
+        self.assertEqual(code, 0)
+        self.assertEqual([group["size"] for group in report["groups"]], [10])
+
+    def test_invalid_size_unit_exits_2(self):
+        errors = io.StringIO()
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:
+            main(["--min-size", "1XB", str(self.root)])
+        self.assertEqual(caught.exception.code, 2)
+        self.assertIn("unknown size unit", errors.getvalue())
+
+    def test_max_size_below_min_size_exits_2(self):
+        code, _, errors = self.run_main(
+            "--min-size", "2K", "--max-size", "1K", str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("--max-size must be greater than or equal to --min-size", errors)
+
+    def test_exclude_from_reads_patterns_and_ignores_comments(self):
+        keep = self.write("keep.txt", b"same")
+        self.write("other.txt", b"same")
+        skip_log = self.write("skip.log", b"other")
+        self.write("also.log", b"other")
+        skip_dir = self.write("node_modules/skip.txt", b"third")
+        self.write("node_modules/also.txt", b"third")
+        rules = self.root / "excludes.txt"
+        rules.write_text("# generated\n\n*.log\nnode_modules\n", encoding="utf-8")
+        code, output, _ = self.run_main("--exclude-from", str(rules), str(self.root))
+        self.assertEqual(code, 0)
+        self.assertIn(str(keep), output)
+        self.assertNotIn(str(skip_log), output)
+        self.assertNotIn(str(skip_dir), output)
+
+    def test_exclude_from_can_be_repeated(self):
+        keep = self.write("keep.txt", b"same")
+        self.write("other.txt", b"same")
+        skip_log = self.write("skip.log", b"other")
+        self.write("also.log", b"other")
+        skip_tmp = self.write("skip.tmp", b"third")
+        self.write("also.tmp", b"third")
+        first = self.root / "first.rules"
+        second = self.root / "second.rules"
+        first.write_text("*.log\n", encoding="utf-8")
+        second.write_text("*.tmp\n", encoding="utf-8")
+        code, output, _ = self.run_main(
+            "--exclude-from", str(first), "--exclude-from", str(second), str(self.root))
+        self.assertEqual(code, 0)
+        self.assertIn(str(keep), output)
+        self.assertNotIn(str(skip_log), output)
+        self.assertNotIn(str(skip_tmp), output)
+
+    def test_missing_exclude_file_exits_2(self):
+        code, _, errors = self.run_main(
+            "--exclude-from", str(self.root / "missing.rules"), str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("cannot read exclude file", errors)
+
+    def test_non_utf8_exclude_file_exits_2(self):
+        rules = self.root / "bad.rules"
+        rules.write_bytes(b"\xff\xfe\n")
+        code, _, errors = self.run_main("--exclude-from", str(rules), str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("cannot read exclude file", errors)
+
     def test_csv_and_json_are_mutually_exclusive(self):
         errors = io.StringIO()
         with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:
@@ -149,7 +228,7 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output), self.assertRaises(SystemExit) as caught:
             main(["--version"])
         self.assertEqual(caught.exception.code, 0)
-        self.assertIn("dupefinder 0.2.0", output.getvalue())
+        self.assertIn("dupefinder 0.3.0", output.getvalue())
 
     def test_version_matches_pyproject(self):
         pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"

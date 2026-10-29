@@ -1,15 +1,14 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "dupefinder-003",
+    "task_id": "dupefinder-004",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793256458.5055313,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793258547.1122885,
     "owner": "opencode:1",
     "started_by": "opencode:1",
-    "continuations": [],
-    "completed_at": 1793256485.2084448
+    "continuations": []
   },
   "checkpoints": [
     {
@@ -157,6 +156,45 @@
       "status": "completed",
       "timestamp": 1793256485.2084463,
       "timestamp_str": "2026-10-29 09:48:05",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-004",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Add human-readable size bounds and exclude-file support; update tests, docs, version and gates",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258367.2260492,
+      "timestamp_str": "2026-10-29 10:19:27",
+      "agent": "opencode:1",
+      "impact_assessment": {
+        "why": "Real scans need natural size limits and reusable exclusion lists instead of long command lines or manual byte arithmetic.",
+        "benefits": "Users can pass --min-size 1MiB and --max-size 500M, and keep shared ignore patterns in a file with comments and blank lines.",
+        "risks": "contract: new --max-size and --exclude-from flags plus a version bump; dependency: standard library re and pathlib only; concurrency: read-only scan with no shared state; state: no file writes outside the project",
+        "mitigation": "Keep parsing strict, validate max >= min, test suffixes, comments and unreadable files, document 1024-based units, and run every project gate before committing."
+      }
+    },
+    {
+      "task_id": "dupefinder-004",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[1/1] Implemented binary size bounds, max-size, exclude-from files, version 0.3.0, ADR-004 and 49 passing tests; Ruff clean and flags smoke-tested",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258536.650103,
+      "timestamp_str": "2026-10-29 10:22:16",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-004",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793258547.1122885,
+      "timestamp_str": "2026-10-29 10:22:27",
       "agent": "opencode:1"
     }
   ]

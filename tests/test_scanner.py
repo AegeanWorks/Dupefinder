@@ -43,6 +43,17 @@ class ScannerTests(unittest.TestCase):
         self.assertEqual(find_duplicates([self.root], min_size=2), [])
         self.assertEqual(len(find_duplicates([self.root], min_size=1)), 1)
 
+    def test_max_size_filters_large_files(self):
+        self.write("small-a.bin", b"x")
+        self.write("small-b.bin", b"x")
+        self.write("large-a.bin", b"x" * 10)
+        self.write("large-b.bin", b"x" * 10)
+        small = find_duplicates([self.root], max_size=1)
+        self.assertEqual(len(small), 1)
+        self.assertEqual(small[0].size, 1)
+        both = find_duplicates([self.root], max_size=10)
+        self.assertEqual([group.size for group in both], [10, 1])
+
     def test_hidden_files_are_skipped_unless_requested(self):
         self.write(".hidden/a.txt", b"same")
         self.write(".hidden/b.txt", b"same")

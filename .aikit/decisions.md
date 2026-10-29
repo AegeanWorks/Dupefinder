@@ -35,3 +35,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: A filesystem walk can skip an unreadable folder or fail when a root disappears. Reporting success in that state can claim a tree is duplicate-free when an unreadable folder still hides a copy.
 - **Decision**: Print walk and hash failures as `Warning:` lines on stderr, keep the partial report on stdout for diagnosis, and exit `1` whenever any warning occurred. Catch `OSError` around the scan, report a clean `Error:`/`Why:`/`Fix:` message, and exit `1` when a root cannot be read or vanishes mid-scan.
 - **Consequences**: Exit `0` now means a complete scan, so CI and scripts can trust a clean result. Callers must handle exit `1` as either duplicates found under `--fail-on-duplicates` or an incomplete scan; stderr distinguishes the two.
+
+### ADR-004: Human-readable size bounds and reusable exclude files
+
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Requiring raw byte counts and repeating many `--exclude` flags makes real scans error-prone and hard to share across commands.
+- **Decision**: Parse `--min-size` and `--max-size` as whole numbers with optional binary unit suffixes, and add repeatable `--exclude-from FILE` loading one glob per line while ignoring blank lines and `#` comments. Both features only filter candidates; they never modify files.
+- **Consequences**: Users can write `--min-size 1MiB` and keep shared ignore lists in version control. Suffixes are 1024-based and decimal fractions are rejected; an unreadable exclude file exits `2` with a `Why:`/`Fix:` message. The scanner API gains an optional `max_size` bound.

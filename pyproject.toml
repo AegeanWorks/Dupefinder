@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dupefinder"
-version = "0.2.0"
+version = "0.3.0"
 description = "Read-only duplicate file finder that groups byte-identical files by size and SHA-256 and reports reclaimable space."
 readme = "README.md"
 requires-python = ">=3.10"

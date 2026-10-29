@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
-- **Total Top-Level Functions**: `15`
-- **Total Class Methods**: `46`
-- **Total Source Lines**: `703`
+- **Total Top-Level Functions**: `17`
+- **Total Class Methods**: `55`
+- **Total Source Lines**: `856`
 
 ---
 
@@ -33,9 +33,10 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `91` lines (`4009` bytes)
+**Size**: `141` lines (`6326` bytes)
 
 **Functions:**
+- `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
 - `def _non_negative_int(value)` - *Parse a whole number that cannot be negative.*
 - `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
 - `def main(argv)` - *Run one scan; returns the process exit code.*
@@ -45,9 +46,10 @@
 ### [`dupefinder/filters.py`](dupefinder/filters.py)
 > *Case-sensitive glob filters applied while walking a scan root.*
 
-**Size**: `21` lines (`841` bytes)
+**Size**: `31` lines (`1192` bytes)
 
 **Functions:**
+- `def load_patterns(path)` - *Read one exclude glob per line, ignoring blank lines and `#` comments.*
 - `def normalize_patterns(patterns)` - *Turn user globs into POSIX-style patterns; backslashes become slashes.*
 - `def is_excluded(relative, name, patterns)` - *Whether a file or folder matches one exclude pattern.*
 
@@ -90,14 +92,14 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `111` lines (`4510` bytes)
+**Size**: `114` lines (`4644` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
 - `def _walk(root, include_hidden, patterns, max_depth, on_error, found)` - *Append regular files under one directory, skipping hidden, excluded and symlinked entries.*
 - `def _raise(error)` - *Default walk error handler: surface the failure instead of hiding it.*
 - `def _report(error, on_error)` - *Send a recoverable per-file error to the caller, or re-raise when it has no handler.*
-- `def find_duplicates(roots, *, min_size, include_hidden, exclude, max_depth, on_error)` - *Group byte-identical files by size then SHA-256; hard links count once.*
+- `def find_duplicates(roots, *, min_size, max_size, include_hidden, exclude, max_depth, on_error)` - *Group byte-identical files between the size bounds; hard links count once.*
 
 ---
 
@@ -111,7 +113,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `193` lines (`7787` bytes)
+**Size**: `272` lines (`11479` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -131,6 +133,14 @@
   - Method `.test_exclude_flag_filters_files()`
   - Method `.test_exclude_can_be_repeated()`
   - Method `.test_max_depth_flag_limits_scan()`
+  - Method `.test_min_size_accepts_binary_suffixes()`
+  - Method `.test_max_size_filters_large_files()`
+  - Method `.test_invalid_size_unit_exits_2()`
+  - Method `.test_max_size_below_min_size_exits_2()`
+  - Method `.test_exclude_from_reads_patterns_and_ignores_comments()`
+  - Method `.test_exclude_from_can_be_repeated()`
+  - Method `.test_missing_exclude_file_exits_2()`
+  - Method `.test_non_utf8_exclude_file_exits_2()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
   - Method `.test_version_matches_pyproject()`
@@ -144,7 +154,7 @@
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `166` lines (`6867` bytes)
+**Size**: `177` lines (`7350` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -153,6 +163,7 @@
   - Method `.test_finds_identical_files_and_ignores_unique_ones()`
   - Method `.test_same_size_different_content_is_not_a_duplicate()`
   - Method `.test_min_size_filters_small_files()`
+  - Method `.test_max_size_filters_large_files()`
   - Method `.test_hidden_files_are_skipped_unless_requested()`
   - Method `.test_hidden_root_is_scanned_when_passed_explicitly()`
   - Method `.test_hard_links_are_counted_once()`

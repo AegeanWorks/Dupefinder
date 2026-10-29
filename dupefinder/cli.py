@@ -1,13 +1,41 @@
 """Command-line entry point for dupefinder."""
 
 import argparse
+import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 from dupefinder import __version__
+from dupefinder.filters import load_patterns
 from dupefinder.report import render_csv, render_json, render_text
 from dupefinder.scanner import find_duplicates
+
+_SIZE_PATTERN = re.compile(r"(\d+)\s*([a-z]*)")
+_SIZE_UNITS = {
+    "": 1, "b": 1,
+    "k": 1024, "kb": 1024, "kib": 1024,
+    "m": 1024 ** 2, "mb": 1024 ** 2, "mib": 1024 ** 2,
+    "g": 1024 ** 3, "gb": 1024 ** 3, "gib": 1024 ** 3,
+    "t": 1024 ** 4, "tb": 1024 ** 4, "tib": 1024 ** 4,
+    "p": 1024 ** 5, "pb": 1024 ** 5, "pib": 1024 ** 5,
+}
+
+
+def _size(value: str) -> int:
+    """Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based."""
+    match = _SIZE_PATTERN.fullmatch(value.strip().lower())
+    if not match:
+        raise argparse.ArgumentTypeError(
+            f"expected a whole size such as 500, 10K or 1MiB, got '{value}'")
+    unit = match.group(2)
+    try:
+        multiplier = _SIZE_UNITS[unit]
+    except KeyError as error:
+        raise argparse.ArgumentTypeError(
+            f"unknown size unit '{unit}'; use B, K/KiB, M/MiB, G/GiB, T/TiB or P/PiB"
+        ) from error
+    return int(match.group(1)) * multiplier
 
 
 def _non_negative_int(value: str) -> int:
@@ -30,12 +58,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("paths", nargs="*", metavar="PATH",
                         help="files or folders to scan (default: current folder)")
-    parser.add_argument("--min-size", type=_non_negative_int, default=1, metavar="BYTES",
-                        help="ignore files smaller than BYTES (default: 1)")
+    parser.add_argument("--min-size", type=_size, default=1, metavar="SIZE",
+                        help="ignore files smaller than SIZE (default: 1; K/M/G are 1024-based)")
+    parser.add_argument("--max-size", type=_size, default=None, metavar="SIZE",
+                        help="ignore files larger than SIZE")
     parser.add_argument("--max-depth", type=_non_negative_int, default=None, metavar="N",
                         help="scan at most N folder levels below each root")
     parser.add_argument("--exclude", action="append", metavar="GLOB",
                         help="skip files or folders matching GLOB; repeatable, case-sensitive")
+    parser.add_argument("--exclude-from", action="append", metavar="FILE",
+                        help="read exclude globs from FILE, one per line; blank lines and "
+                             "# comments are ignored; repeatable")
     parser.add_argument("--include-hidden", action="store_true",
                         help="scan dot-prefixed hidden files and folders")
     formats = parser.add_mutually_exclusive_group()
@@ -59,13 +92,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Fix: pass an existing file or folder, e.g. `python -m dupefinder .`.",
               file=sys.stderr)
         return 2
+    if args.max_size is not None and args.max_size < args.min_size:
+        print("Error: --max-size must be greater than or equal to --min-size",
+              file=sys.stderr)
+        print("Why: the minimum size is larger than the maximum size.", file=sys.stderr)
+        print("Fix: raise --max-size or lower --min-size.", file=sys.stderr)
+        return 2
+    exclude = list(args.exclude or ())
+    for filename in args.exclude_from or ():
+        try:
+            exclude.extend(load_patterns(Path(filename)))
+        except (OSError, UnicodeError) as error:
+            print(f"Error: cannot read exclude file: {filename}: {error}", file=sys.stderr)
+            print("Why: --exclude-from needs a readable UTF-8 text file.", file=sys.stderr)
+            print("Fix: check the path and permissions, or pass patterns with --exclude.",
+                  file=sys.stderr)
+            return 2
     warnings: list[str] = []
     try:
         groups = find_duplicates(
             roots,
             min_size=args.min_size,
+            max_size=args.max_size,
             include_hidden=args.include_hidden,
-            exclude=args.exclude or (),
+            exclude=exclude,
             max_depth=args.max_depth,
             on_error=lambda error: warnings.append(str(error)),
         )

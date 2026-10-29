@@ -71,10 +71,11 @@ def _report(error: OSError, on_error: ErrorHandler | None) -> None:
 
 
 def find_duplicates(roots: Sequence[Path], *, min_size: int = 1,
+                    max_size: int | None = None,
                     include_hidden: bool = False, exclude: Sequence[str] = (),
                     max_depth: int | None = None,
                     on_error: ErrorHandler | None = None) -> list[DuplicateGroup]:
-    """Group byte-identical files by size then SHA-256; hard links count once."""
+    """Group byte-identical files between the size bounds; hard links count once."""
     by_size: dict[int, list[Path]] = {}
     seen_inodes: set[tuple[int, int]] = set()
     for path in scan_files(roots, include_hidden=include_hidden, exclude=exclude,
@@ -85,6 +86,8 @@ def find_duplicates(roots: Sequence[Path], *, min_size: int = 1,
             _report(error, on_error)
             continue
         if info.st_size < min_size:
+            continue
+        if max_size is not None and info.st_size > max_size:
             continue
         if info.st_ino:
             key = (info.st_dev, info.st_ino)

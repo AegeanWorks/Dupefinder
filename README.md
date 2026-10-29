@@ -31,7 +31,13 @@ python -m dupefinder .
 Scan a folder and ignore files smaller than 1 MiB:
 
 ```bash
-python -m dupefinder ~/Downloads --min-size 1048576
+python -m dupefinder ~/Downloads --min-size 1MiB
+```
+
+Scan only files between 10 MiB and 500 MiB:
+
+```bash
+python -m dupefinder ~/Downloads --min-size 10MiB --max-size 500MiB
 ```
 
 Print a machine-readable report:
@@ -50,6 +56,21 @@ Skip logs and dependency folders:
 
 ```bash
 python -m dupefinder . --exclude "*.log" --exclude node_modules
+```
+
+Keep shared rules in a file:
+
+```bash
+python -m dupefinder . --exclude-from .dupeignore
+```
+
+`.dupeignore`:
+
+```text
+# dependency and build output
+node_modules
+build/*
+*.log
 ```
 
 Limit the scan to two folder levels below the root:
@@ -72,13 +93,15 @@ python -m dupefinder . --fail-on-duplicates
 
 `dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped.
 
-`--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
+`--min-size` and `--max-size` accept whole numbers with optional `B`, `K`/`KiB`, `M`/`MiB`, `G`/`GiB`, `T`/`TiB` or `P`/`PiB` suffixes. All suffixes are 1024-based, so `1K` means 1024 bytes.
+
+`--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--exclude-from FILE` reads one pattern per line, ignores blank lines and lines starting with `#`, and may be repeated. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
 | Exit code | Meaning |
 |---|---|
 | `0` | Scan completed without warnings; duplicates may or may not exist |
 | `1` | `--fail-on-duplicates` was passed and duplicates were found, or the scan was incomplete |
-| `2` | A path does not exist, or an argument is invalid |
+| `2` | A path or exclude file does not exist, or an argument is invalid |
 
 A scan is incomplete when a folder or file cannot be read, or a root disappears while it is being scanned. Those errors are printed as `Warning:` lines on stderr, the partial report is still written to stdout, and the run exits `1` so CI cannot mistake a partial scan for a clean one.
 
@@ -106,7 +129,7 @@ dupefinder/
 │   ├── __init__.py           <- Public exports
 │   ├── __main__.py           <- `python -m dupefinder` entry point
 │   ├── cli.py                <- Argument parsing and exit codes
-│   ├── filters.py            <- Exclude glob matching
+│   ├── filters.py            <- Exclude globs and exclude-file loading
 │   ├── hashing.py            <- Streaming SHA-256
 │   ├── model.py              <- DuplicateGroup data
 │   ├── report.py             <- Text, JSON and CSV rendering
