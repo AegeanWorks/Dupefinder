@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
-- **Total Top-Level Functions**: `19`
-- **Total Class Methods**: `60`
-- **Total Source Lines**: `943`
+- **Total Top-Level Functions**: `20`
+- **Total Class Methods**: `64`
+- **Total Source Lines**: `1031`
 
 ---
 
@@ -33,13 +33,13 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `177` lines (`8086` bytes)
+**Size**: `199` lines (`9080` bytes)
 
 **Functions:**
 - `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
 - `def _non_negative_int(value)` - *Parse a whole number that cannot be negative.*
 - `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
-- `def _write_redundant_list(path, groups)` - *Write all but the first path per group to a new file; return an exit code.*
+- `def _write_redundant_list(path, groups, keep)` - *Write all but the kept path per group to a new file; return an exit code.*
 - `def main(argv)` - *Run one scan; returns the process exit code.*
 
 ---
@@ -80,14 +80,15 @@
 ### [`dupefinder/report.py`](dupefinder/report.py)
 > *Text, JSON and CSV renderings of duplicate groups.*
 
-**Size**: `79` lines (`2828` bytes)
+**Size**: `101` lines (`3677` bytes)
 
 **Functions:**
 - `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
 - `def render_text(groups, roots)` - *A readable report: one block per duplicate set, then a summary.*
 - `def render_json(groups, roots)` - *A stable JSON document for scripts.*
 - `def render_csv(groups)` - *One CSV row per duplicate path, with a header, for spreadsheets and scripts.*
-- `def redundant_paths(groups)` - *Every path except the first (kept) path in each group.*
+- `def _keep_path(group, strategy)` - *Choose the path a redundant list should leave out.*
+- `def redundant_paths(groups, keep)` - *Every path except the one selected to keep in each group.*
 
 ---
 
@@ -115,7 +116,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `318` lines (`13674` bytes)
+**Size**: `362` lines (`15896` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -148,6 +149,10 @@
   - Method `.test_redundant_list_is_empty_without_duplicates()`
   - Method `.test_redundant_list_write_failure_exits_1()`
   - Method `.test_incomplete_scan_does_not_write_redundant_list()`
+  - Method `.test_keep_shortest_writes_the_longer_path()`
+  - Method `.test_keep_oldest_and_newest_use_file_times()`
+  - Method `.test_keep_requires_redundant_list()`
+  - Method `.test_keep_oldest_metadata_failure_exits_1()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
   - Method `.test_version_matches_pyproject()`

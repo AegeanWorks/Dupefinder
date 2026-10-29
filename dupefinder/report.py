@@ -74,6 +74,28 @@ def render_csv(groups: Sequence[DuplicateGroup]) -> str:
     return buffer.getvalue().rstrip("\n")
 
 
-def redundant_paths(groups: Sequence[DuplicateGroup]) -> list[Path]:
-    """Every path except the first (kept) path in each group."""
-    return [path for group in groups for path in group.paths[1:]]
+KEEP_STRATEGIES = ("first", "shortest", "oldest", "newest")
+
+
+def _keep_path(group: DuplicateGroup, strategy: str) -> Path:
+    """Choose the path a redundant list should leave out."""
+    if strategy == "first":
+        return group.paths[0]
+    if strategy == "shortest":
+        return min(group.paths, key=lambda path: (len(str(path)), str(path)))
+    if strategy == "oldest":
+        return min(group.paths, key=lambda path: (
+            path.stat().st_mtime_ns, len(str(path)), str(path)))
+    if strategy == "newest":
+        return min(group.paths, key=lambda path: (
+            -path.stat().st_mtime_ns, len(str(path)), str(path)))
+    raise ValueError(f"unknown keep strategy: {strategy}")
+
+
+def redundant_paths(groups: Sequence[DuplicateGroup], keep: str = "first") -> list[Path]:
+    """Every path except the one selected to keep in each group."""
+    redundant: list[Path] = []
+    for group in groups:
+        kept = _keep_path(group, keep)
+        redundant.extend(path for path in group.paths if path != kept)
+    return redundant

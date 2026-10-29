@@ -51,3 +51,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Users need an actionable cleanup list after a scan, but automatic deletion is unsafe and an output path could collide with a scanned file.
 - **Decision**: Add `--redundant-list FILE` writing every path except the first path in each group, one per line. Open the output in exclusive-create mode so an existing file is never overwritten, and never delete or modify scanned files.
 - **Consequences**: Users get a deterministic, reviewable list without weakening the read-only contract. Existing list files must be removed or renamed; an existing output path exits `2`, and a write failure exits `1`. An incomplete scan refuses to write the list, because a partial list could omit or mislabel copies. Text, JSON and CSV reports are unchanged.
+
+### ADR-006: Selectable kept copy for redundant lists
+
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Keeping the first path is deterministic but arbitrary; users often want to preserve a canonical short path, the original oldest copy, or the newest copy when reviewing duplicates.
+- **Decision**: Add `--keep {first,shortest,oldest,newest}` for `--redundant-list`. `first` keeps scan order, `shortest` minimizes path length, and `oldest`/`newest` compare `st_mtime_ns`. Break ties by shortest path, then lexicographic path, and reject `--keep` without `--redundant-list`.
+- **Consequences**: The redundant list becomes more useful without deleting anything. `oldest` and `newest` read file metadata; if it cannot be read, the run exits `1` with a `Why:`/`Fix:` message and writes no list. The strategy only changes which path is omitted from the list, not the scan or the other report formats.

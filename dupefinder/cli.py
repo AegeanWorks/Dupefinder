@@ -9,7 +9,13 @@ from pathlib import Path
 from dupefinder import __version__
 from dupefinder.filters import load_patterns
 from dupefinder.model import DuplicateGroup
-from dupefinder.report import redundant_paths, render_csv, render_json, render_text
+from dupefinder.report import (
+    KEEP_STRATEGIES,
+    redundant_paths,
+    render_csv,
+    render_json,
+    render_text,
+)
 from dupefinder.scanner import find_duplicates
 
 _SIZE_PATTERN = re.compile(r"(\d+)\s*([a-z]*)")
@@ -77,17 +83,26 @@ def build_parser() -> argparse.ArgumentParser:
     formats.add_argument("--csv", action="store_true",
                          help="print one CSV row per duplicate path")
     parser.add_argument("--redundant-list", metavar="FILE",
-                        help="write redundant paths to a new FILE, keeping the first path "
-                             "in each group")
+                        help="write redundant paths to a new FILE")
+    parser.add_argument("--keep", choices=KEEP_STRATEGIES, default=None,
+                        help="with --redundant-list, keep the first, shortest, oldest or "
+                             "newest path (default: first)")
     parser.add_argument("--fail-on-duplicates", action="store_true",
                         help="exit 1 when duplicates are found")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 
-def _write_redundant_list(path: Path, groups: Sequence[DuplicateGroup]) -> int:
-    """Write all but the first path per group to a new file; return an exit code."""
-    lines = [str(item) for item in redundant_paths(groups)]
+def _write_redundant_list(path: Path, groups: Sequence[DuplicateGroup],
+                          keep: str = "first") -> int:
+    """Write all but the kept path per group to a new file; return an exit code."""
+    try:
+        lines = [str(item) for item in redundant_paths(groups, keep)]
+    except OSError as error:
+        print(f"Error: cannot read timestamps for --keep {keep}: {error}", file=sys.stderr)
+        print("Why: oldest and newest selection need readable file metadata.", file=sys.stderr)
+        print("Fix: rerun the scan or use --keep first or --keep shortest.", file=sys.stderr)
+        return 1
     text = "\n".join(lines)
     if text:
         text += "\n"
@@ -117,6 +132,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Why: dupefinder scans existing files and folders only.", file=sys.stderr)
         print("Fix: pass an existing file or folder, e.g. `python -m dupefinder .`.",
               file=sys.stderr)
+        return 2
+    if args.keep is not None and not args.redundant_list:
+        print("Error: --keep requires --redundant-list FILE", file=sys.stderr)
+        print("Why: --keep chooses which copy the redundant list leaves out.",
+              file=sys.stderr)
+        print("Fix: add --redundant-list FILE or omit --keep.", file=sys.stderr)
         return 2
     if args.max_size is not None and args.max_size < args.min_size:
         print("Error: --max-size must be greater than or equal to --min-size",
@@ -167,7 +188,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print("Why: a partial list could omit or mislabel redundant copies.", file=sys.stderr)
             print("Fix: resolve the scan warnings and rerun.", file=sys.stderr)
             return 1
-        code = _write_redundant_list(Path(args.redundant_list), groups)
+        code = _write_redundant_list(Path(args.redundant_list), groups,
+                                     args.keep or "first")
         if code:
             return code
     # An incomplete scan must not report success: an unreadable folder can hide the only

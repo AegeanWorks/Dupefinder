@@ -3,6 +3,7 @@
 import csv
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -11,6 +12,7 @@ from unittest import mock
 
 from dupefinder import __version__
 from dupefinder.cli import main
+from dupefinder.model import DuplicateGroup
 
 
 class CliTests(unittest.TestCase):
@@ -263,6 +265,48 @@ class CliTests(unittest.TestCase):
         self.assertFalse(output.exists())
         self.assertIn("refusing to write redundant list", errors)
 
+    def test_keep_shortest_writes_the_longer_path(self):
+        short = self.write("a.txt", b"same")
+        long = self.write("nested/deep/b.txt", b"same")
+        output = self.root / "redundant.txt"
+        code, _, _ = self.run_main(
+            "--redundant-list", str(output), "--keep", "shortest", str(self.root))
+        self.assertEqual(code, 0)
+        self.assertEqual(output.read_text(encoding="utf-8").splitlines(), [str(long)])
+        self.assertNotIn(str(short), output.read_text(encoding="utf-8"))
+
+    def test_keep_oldest_and_newest_use_file_times(self):
+        older = self.write("a.txt", b"same")
+        newer = self.write("b.txt", b"same")
+        os.utime(older, ns=(1_000_000_000_000, 1_000_000_000_000))
+        os.utime(newer, ns=(2_000_000_000_000, 2_000_000_000_000))
+        oldest = self.root / "oldest.txt"
+        newest = self.root / "newest.txt"
+        code, _, _ = self.run_main(
+            "--redundant-list", str(oldest), "--keep", "oldest", str(self.root))
+        self.assertEqual(code, 0)
+        self.assertEqual(oldest.read_text(encoding="utf-8").splitlines(), [str(newer)])
+        code, _, _ = self.run_main(
+            "--redundant-list", str(newest), "--keep", "newest", str(self.root))
+        self.assertEqual(code, 0)
+        self.assertEqual(newest.read_text(encoding="utf-8").splitlines(), [str(older)])
+
+    def test_keep_requires_redundant_list(self):
+        code, _, errors = self.run_main("--keep", "shortest", str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("--keep requires --redundant-list", errors)
+
+    def test_keep_oldest_metadata_failure_exits_1(self):
+        missing = self.root / "missing-a.txt"
+        groups = [DuplicateGroup("digest", 4, (missing, self.root / "missing-b.txt"))]
+        output = self.root / "redundant.txt"
+        with mock.patch("dupefinder.cli.find_duplicates", return_value=groups):
+            code, _, errors = self.run_main(
+                "--redundant-list", str(output), "--keep", "oldest", str(self.root))
+        self.assertEqual(code, 1)
+        self.assertIn("cannot read timestamps", errors)
+        self.assertFalse(output.exists())
+
     def test_csv_and_json_are_mutually_exclusive(self):
         errors = io.StringIO()
         with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:
@@ -274,7 +318,7 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output), self.assertRaises(SystemExit) as caught:
             main(["--version"])
         self.assertEqual(caught.exception.code, 0)
-        self.assertIn("dupefinder 0.4.0", output.getvalue())
+        self.assertIn("dupefinder 0.5.0", output.getvalue())
 
     def test_version_matches_pyproject(self):
         pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"

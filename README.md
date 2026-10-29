@@ -81,6 +81,14 @@ python -m dupefinder . --redundant-list redundant.txt
 
 The list contains one path per line and is created only if it does not already exist. It is not written when the scan is incomplete. `dupefinder` never deletes files; review the list before removing anything.
 
+Keep the shortest path, the oldest copy, or the newest copy in each group:
+
+```bash
+python -m dupefinder . --redundant-list redundant.txt --keep shortest
+python -m dupefinder . --redundant-list redundant.txt --keep oldest
+python -m dupefinder . --redundant-list redundant.txt --keep newest
+```
+
 Limit the scan to two folder levels below the root:
 
 ```bash
@@ -105,7 +113,7 @@ python -m dupefinder . --fail-on-duplicates
 
 `--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--exclude-from FILE` reads one pattern per line, ignores blank lines and lines starting with `#`, and may be repeated. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
-`--redundant-list FILE` writes every path except the first (kept) path in each group to a new file, one path per line. It refuses to overwrite an existing file, including a scanned file.
+`--redundant-list FILE` writes every path except the kept path in each group to a new file, one path per line. It refuses to overwrite an existing file, including a scanned file. `--keep` chooses the kept path: `first` (default, scan order), `shortest`, `oldest`, or `newest`. Ties fall back to the shortest path, then the lexicographic path, so results are deterministic. `oldest` and `newest` compare file modification times; if metadata cannot be read, the run exits `1` without writing a list. `--keep` requires `--redundant-list`.
 
 | Exit code | Meaning |
 |---|---|
@@ -121,7 +129,7 @@ A scan is incomplete when a folder or file cannot be read, or a root disappears 
 2. Group files by exact byte size, since byte-identical files always share a size.
 3. Hash only the groups that contain more than one file, using streaming SHA-256.
 4. Report each duplicate set, largest reclaimable space first.
-5. Optionally write all but the first path in each group to a new redundant list; nothing is deleted.
+5. Optionally write all but the kept path in each group to a new redundant list; `--keep` selects the first, shortest, oldest, or newest copy, and nothing is deleted.
 
 Hard links share one inode, so they are counted once: deleting one name would not reclaim the space.
 

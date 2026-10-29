@@ -1,77 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "dupefinder-005",
+    "task_id": "dupefinder-006",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793258956.2866402,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793259465.5752785,
     "owner": "opencode:1",
     "started_by": "opencode:1",
-    "continuations": [],
-    "completed_at": 1793258974.5525901
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "dupefinder-001",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793254011.4563513,
-      "timestamp_str": "2026-10-29 09:06:51",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-001",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'dupefinder-001' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793254035.614549,
-      "timestamp_str": "2026-10-29 09:07:15",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-002",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Add exclude globs, max-depth, CSV output and version; update tests and docs; verify with aikit check",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793254843.7439053,
-      "timestamp_str": "2026-10-29 09:20:43",
-      "agent": "opencode:1",
-      "impact_assessment": {
-        "why": "Real scans need to skip noisy folders, bound recursion, and feed scripts without parsing the human report.",
-        "benefits": "Users can exclude build caches and logs, limit depth, export one CSV row per duplicate path, and check the installed version.",
-        "risks": "contract: new CLI flags and one new module; dependency: standard library only; concurrency: read-only scan with no shared state; state: no file writes outside the project",
-        "mitigation": "Keep filters opt-in, test each flag in temp directories, document matching semantics, and run the project gates before committing."
-      }
-    },
-    {
-      "task_id": "dupefinder-002",
-      "phase": "phase 3",
-      "phase_num": 3,
-      "description": "[1/1] Implemented exclude filters, max-depth, CSV output, version and tests; 34 tests pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793255058.2168965,
-      "timestamp_str": "2026-10-29 09:24:18",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-002",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793255081.8349445,
-      "timestamp_str": "2026-10-29 09:24:41",
-      "agent": "opencode:1"
-    },
     {
       "task_id": "dupefinder-002",
       "phase": "completed",
@@ -249,6 +188,67 @@
       "status": "completed",
       "timestamp": 1793258974.5525913,
       "timestamp_str": "2026-10-29 10:29:34",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-006",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Add --keep strategies for redundant lists; update tests, docs, version and gates",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793259275.1101217,
+      "timestamp_str": "2026-10-29 10:34:35",
+      "agent": "opencode:1",
+      "impact_assessment": {
+        "why": "Keeping the first path is deterministic but arbitrary; users need to preserve a canonical, shortest, oldest or newest copy when reviewing duplicates.",
+        "benefits": "The redundant list can keep the shortest path, the original oldest copy, or the newest copy, while still never deleting anything.",
+        "risks": "contract: new --keep flag tied to --redundant-list; dependency: standard library pathlib stat only; concurrency: read-only scan plus one list write; state: oldest/newest read file timestamps and must fail cleanly if they vanish",
+        "mitigation": "Validate --keep requires --redundant-list, break ties by shortest then lexicographic path, test each strategy with controlled mtimes, catch stat failures, and run every gate before pushing."
+      }
+    },
+    {
+      "task_id": "dupefinder-006",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[1/1] Implemented --keep first/shortest/oldest/newest with deterministic ties, ADR-006, docs and 58 passing tests; Ruff clean and shortest strategy smoke-tested",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793259426.5984535,
+      "timestamp_str": "2026-10-29 10:37:06",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-006",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793259434.0605657,
+      "timestamp_str": "2026-10-29 10:37:14",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-006",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[1/1] Implemented --keep first/shortest/oldest/newest with one metadata read per group, deterministic ties, ADR-006, docs and 58 passing tests; Ruff clean",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793259456.7380812,
+      "timestamp_str": "2026-10-29 10:37:36",
+      "agent": "opencode:1"
+    },
+    {
+      "task_id": "dupefinder-006",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793259465.5752785,
+      "timestamp_str": "2026-10-29 10:37:45",
       "agent": "opencode:1"
     }
   ]
