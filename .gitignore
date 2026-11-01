@@ -3,6 +3,8 @@
 .aikit/*.bak
 .aikit/*.tmp_*
 .aikit/*.corrupt_*
+# Local reforge review packets: regenerable audit evidence, not project memory
+.aikit/reforge.reviews/
 __pycache__/
 *.py[cod]
 node_modules/
