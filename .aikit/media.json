@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "name": "dupefinder",
+  "repo": "Dupefinder",
+  "has_ui": false,
+  "ui_kind": "cli",
+  "palette": [
+    "#07120d",
+    "#123030",
+    "#66f5bc",
+    "#8eaaf5"
+  ],
+  "motif": "terminal",
+  "layout": "left",
+  "assets": {
+    "logo": {
+      "path": "assets/logo.svg",
+      "status": "approved",
+      "commit": "",
+      "generated_at": "2026-10-31T21:18:20",
+      "review": {
+        "status": "approved",
+        "reviewer": "human:yunus",
+        "method": "structural",
+        "notes": "Valid terminal mark SVG with proper AegeanWorks palette",
+        "score": 95,
+        "reviewed_at": "2026-10-31T21:18:43"
+      }
+    },
+    "social_preview": {
+      "path": "assets/social-preview.svg",
+      "status": "approved",
+      "commit": "",
+      "generated_at": "2026-10-31T21:18:20",
+      "review": {
+        "status": "approved",
+        "reviewer": "human:yunus",
+        "method": "structural",
+        "notes": "Valid social preview SVG",
+        "score": 95,
+        "reviewed_at": "2026-10-31T21:18:49"
+      }
+    }
+  },
+  "screenshots": []
+}

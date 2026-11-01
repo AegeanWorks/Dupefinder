@@ -143,6 +143,7 @@ dupefinder/
 ├── LICENSES/                 <- REUSE license texts
 ├── REUSE.toml                <- Machine-readable SPDX metadata
 ├── README.md
+├── assets/                   <- brand logo and social preview
 ├── pyproject.toml            <- Packaging and console-script metadata
 ├── dupefinder/
 │   ├── __init__.py           <- Public exports
