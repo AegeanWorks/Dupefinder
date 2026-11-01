@@ -7,7 +7,16 @@
     "aikit-integrated",
     "source-available",
     "aegean-license",
-    "commercial-license"
+    "commercial-license",
+    "duplicate-finder",
+    "cli",
+    "python",
+    "file-deduplication",
+    "sha256",
+    "disk-cleanup",
+    "storage-optimization",
+    "local-first",
+    "zero-dependencies"
   ],
   "gates": {},
   "ui_required": false,
@@ -18,5 +27,7 @@
     "dupefinder/cli.py"
   ],
   "ui_checked_at": "2026-10-31",
-  "ui_source": "detected"
+  "ui_source": "detected",
+  "topics_source": "manual",
+  "topics_reviewed_at": "2026-11-01"
 }
