@@ -59,3 +59,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Keeping the first path is deterministic but arbitrary; users often want to preserve a canonical short path, the original oldest copy, or the newest copy when reviewing duplicates.
 - **Decision**: Add `--keep {first,shortest,oldest,newest}` for `--redundant-list`. `first` keeps scan order, `shortest` minimizes path length, and `oldest`/`newest` compare `st_mtime_ns`. Break ties by shortest path, then lexicographic path, and reject `--keep` without `--redundant-list`.
 - **Consequences**: The redundant list becomes more useful without deleting anything. `oldest` and `newest` read file metadata; if it cannot be read, the run exits `1` with a `Why:`/`Fix:` message and writes no list. The strategy only changes which path is omitted from the list, not the scan or the other report formats.
+
+### ADR-007: Skip symlinked directory roots without following them
+
+- **Date**: 2026-11-03
+- **Status**: Accepted
+- **Context**: Explicit file roots that are symbolic links are already skipped, but a directory root passed as a symbolic link was still walked through `os.walk`, following the linked tree for that top level while inner links are skipped.
+- **Decision**: Check `root.is_symlink()` in `scan_files` before the file-or-walk branch and skip such roots, keeping the read-only never-follow-links contract for files and directories alike.
+- **Consequences**: Symlinked directory roots now yield no candidates instead of the linked tree's files. Broken links still report a missing path, and hidden-root handling is unchanged.

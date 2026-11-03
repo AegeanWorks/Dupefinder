@@ -14,13 +14,19 @@ ErrorHandler = Callable[[OSError], None]
 def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
                exclude: Sequence[str] = (), max_depth: int | None = None,
                on_error: ErrorHandler | None = None) -> list[Path]:
-    """Every regular, non-symlink file under `roots`, in stable order."""
+    """Every regular, non-symlink file under `roots`, in stable order.
+
+    A root that is itself a symbolic link is skipped, matching the
+    handling of symlinked entries found while walking.
+    """
     found: list[Path] = []
     patterns = normalize_patterns(exclude)
     for root in roots:
         root = Path(root)
         if not root.exists():
             raise FileNotFoundError(f"path does not exist: {root}")
+        if root.is_symlink():
+            continue
         if root.is_file():
             if not root.is_symlink() and not is_excluded(Path(root.name), root.name, patterns):
                 found.append(root)

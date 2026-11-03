@@ -1,55 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "dupefinder-006",
-    "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793259465.5752785,
-    "owner": "opencode:1",
-    "started_by": "opencode:1",
-    "continuations": [],
-    "completed_at": 1793259487.3200102
+    "task_id": "dupefinder-007",
+    "last_phase": "in_progress",
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793722342.4259608,
+    "owner": "kilo:1",
+    "started_by": "kilo:1",
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "dupefinder-004",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793258547.1122885,
-      "timestamp_str": "2026-10-29 10:22:27",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-004",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'dupefinder-004' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793258573.3885164,
-      "timestamp_str": "2026-10-29 10:22:53",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-005",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Add --redundant-list FILE for safe cleanup planning; update tests, docs, version and gates",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793258741.6311512,
-      "timestamp_str": "2026-10-29 10:25:41",
-      "agent": "opencode:1",
-      "impact_assessment": {
-        "why": "Finding duplicates is useful, but users still need a reviewable list of which copies are redundant without risking automatic deletion.",
-        "benefits": "Users can write one path per redundant copy to a file, keep the first path in each group, and review the list before deleting anything.",
-        "risks": "contract: new output flag and CSV/JSON stay unchanged; dependency: standard library only; concurrency: read-only scan plus one report-file write; state: the output file must never overwrite a scanned file",
-        "mitigation": "Refuse output paths that resolve to scanned files, create an empty list when there are no duplicates, report write failures cleanly, test each path, and run every gate before pushing."
-      }
-    },
     {
       "task_id": "dupefinder-005",
       "phase": "phase 3",
@@ -240,6 +201,46 @@
       "timestamp": 1793291249.857596,
       "timestamp_str": "2026-10-29 19:27:29",
       "agent": "opencode"
+    },
+    {
+      "task_id": "dupefinder-007",
+      "phase": "in_progress",
+      "phase_num": 2,
+      "description": "[1/1] Audit waves 0,10,20: symlink-dir root guard plus docs; survey 20 commits, verify 58 tests",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793722269.1962292,
+      "timestamp_str": "2026-11-03 19:11:09",
+      "agent": "kilo:1",
+      "impact_assessment": {
+        "why": "Wave 0 clean, 20-commit history surveyed; scan_files follows a symlinked directory root via os.walk top, contradicting never-follow-symlinks contract for explicit file roots which are skipped",
+        "benefits": "Symlink roots skipped deterministically; contract holds for files and dirs; 59 tests green and 4/4 gates pass",
+        "risks": "contract: scan_files skips symlink dir roots; dependency: stdlib only; concurrency: read-only walk unchanged; state: no new files",
+        "mitigation": "Failing-first mock test without privilege, explicit is_symlink guard before is_file, full gates before commit"
+      },
+      "plan_digest": "2bb474ea8aedf6bf0cbc06a41e597214200d27ee7a036a213c43a130d52e1b29"
+    },
+    {
+      "task_id": "dupefinder-007",
+      "phase": "in_progress",
+      "phase_num": 3,
+      "description": "[1/1] Implemented symlink-dir root guard with failing-first mock test, ADR-007, README and map; 59 tests pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793722328.0925019,
+      "timestamp_str": "2026-11-03 19:12:08",
+      "agent": "kilo:1"
+    },
+    {
+      "task_id": "dupefinder-007",
+      "phase": "in_progress",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793722342.4259608,
+      "timestamp_str": "2026-11-03 19:12:22",
+      "agent": "kilo:1"
     }
   ]
 }

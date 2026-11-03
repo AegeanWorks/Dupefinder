@@ -9,8 +9,8 @@
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
 - **Total Top-Level Functions**: `20`
-- **Total Class Methods**: `64`
-- **Total Source Lines**: `1031`
+- **Total Class Methods**: `65`
+- **Total Source Lines**: `1050`
 
 ---
 
@@ -95,7 +95,7 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `114` lines (`4644` bytes)
+**Size**: `120` lines (`4823` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
@@ -166,7 +166,7 @@
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `177` lines (`7350` bytes)
+**Size**: `190` lines (`7992` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -181,6 +181,7 @@
   - Method `.test_hard_links_are_counted_once()`
   - Method `.test_scan_files_returns_a_file_passed_directly()`
   - Method `.test_scan_files_skips_symlinks()`
+  - Method `.test_scan_files_skips_symlinked_directory_root()`
   - Method `.test_missing_root_raises()`
   - Method `.test_hash_file_matches_hashlib()`
   - Method `.test_largest_reclaimable_group_is_reported_first()`

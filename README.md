@@ -111,7 +111,7 @@ Use it in CI, failing when copies exist:
 python -m dupefinder . --fail-on-duplicates
 ```
 
-`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped.
+`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped, and a root passed explicitly as a symbolic link is skipped as well.
 
 `--min-size` and `--max-size` accept whole numbers with optional `B`, `K`/`KiB`, `M`/`MiB`, `G`/`GiB`, `T`/`TiB` or `P`/`PiB` suffixes. All suffixes are 1024-based, so `1K` means 1024 bytes.
 

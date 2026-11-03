@@ -4,6 +4,7 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from dupefinder.hashing import hash_file
 from dupefinder.report import format_size
@@ -91,6 +92,18 @@ class ScannerTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("symbolic links are unavailable here")
         self.assertEqual(scan_files([self.root]), [target])
+
+    def test_scan_files_skips_symlinked_directory_root(self):
+        link = self.root / "linkdir"
+        link.mkdir()
+        self.write("linkdir/a.txt", b"x")
+        with mock.patch.object(Path, "exists", autospec=True) as exists, \
+                mock.patch.object(Path, "is_symlink", autospec=True) as is_link, \
+                mock.patch.object(Path, "is_file", autospec=True) as is_file:
+            exists.side_effect = lambda self: True
+            is_link.side_effect = lambda self: self == link
+            is_file.side_effect = lambda self: False
+            self.assertEqual(scan_files([link]), [])
 
     def test_missing_root_raises(self):
         with self.assertRaises(FileNotFoundError):
