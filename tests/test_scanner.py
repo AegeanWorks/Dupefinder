@@ -188,3 +188,63 @@ class ScannerTests(unittest.TestCase):
         self.assertEqual(format_size(0), "0 B")
         self.assertEqual(format_size(1024), "1.0 KiB")
         self.assertEqual(format_size(1536), "1.5 KiB")
+
+    def test_format_size_large_units(self):
+        self.assertEqual(format_size(1024 ** 2), "1.0 MiB")
+        self.assertEqual(format_size(1024 ** 4), "1.0 TiB")
+        self.assertEqual(format_size(1024 ** 5), "1.0 PiB")
+        self.assertEqual(format_size(1024 ** 6), "1.0 EiB")
+
+    def test_format_size_rounding_carries_to_next_unit(self):
+        self.assertEqual(format_size(1048575), "1.0 MiB")
+        self.assertEqual(format_size(1073741823), "1.0 GiB")
+        self.assertNotIn("1024.0", format_size(1048575))
+
+    def test_hash_file_rejects_non_positive_chunk_size(self):
+        path = self.write("a.bin", b"abc")
+        for bad in (0, -1, -4096):
+            with self.assertRaises(ValueError, msg=f"chunk_size={bad}"):
+                hash_file(path, chunk_size=bad)
+
+    def test_broken_symlink_root_is_skipped(self):
+        link = self.root / "link.txt"
+        with mock.patch.object(Path, "exists", autospec=True) as exists, \
+                mock.patch.object(Path, "is_symlink", autospec=True) as is_link:
+            exists.side_effect = lambda self: False if self == link else True
+            is_link.side_effect = lambda self: True if self == link else False
+            self.assertEqual(scan_files([link]), [])
+
+    def test_scan_files_dedupes_overlapping_roots(self):
+        first = self.write("a.txt", b"x")
+        self.write("b.txt", b"x")
+        self.assertEqual(
+            sorted(map(str, scan_files([self.root, first]))),
+            sorted(map(str, scan_files([self.root]))))
+
+    def test_redundant_paths_validates_keep_even_when_empty(self):
+        from dupefinder.report import redundant_paths
+        with self.assertRaises(ValueError):
+            redundant_paths([], keep="bogus")
+
+    def test_redundant_paths_duplicate_entries(self):
+        from pathlib import Path as _Path  # noqa: F401  (kept local for clarity)
+        from dupefinder.model import DuplicateGroup
+        from dupefinder.report import redundant_paths
+        group = DuplicateGroup("d", 4, (_Path("a"), _Path("a")))
+        self.assertEqual(redundant_paths([group], keep="first"), [_Path("a")])
+
+    def test_redundant_singleton_oldest_does_not_stat(self):
+        from dupefinder.model import DuplicateGroup
+        from dupefinder.report import redundant_paths
+        group = DuplicateGroup("d", 4, (self.root / "definitely-missing-xyz",))
+        with mock.patch.object(Path, "stat", side_effect=AssertionError("must not stat")):
+            self.assertEqual(redundant_paths([group], keep="oldest"), [])
+            self.assertEqual(redundant_paths([group], keep="newest"), [])
+
+    def test_render_text_preserves_trailing_space(self):
+        from dupefinder.model import DuplicateGroup
+        from dupefinder.report import render_text
+        text = render_text(
+            [DuplicateGroup("d", 1, (Path("/tmp/a "), Path("/tmp/b")))], [Path("/tmp")])
+        self.assertIn("a ", text)
+        self.assertNotIn("a\n", text.split("sha256")[1])

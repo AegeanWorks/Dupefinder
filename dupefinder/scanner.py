@@ -23,16 +23,22 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
     patterns = normalize_patterns(exclude)
     for root in roots:
         root = Path(root)
-        if not root.exists():
-            raise FileNotFoundError(f"path does not exist: {root}")
         if root.is_symlink():
             continue
+        if not root.exists():
+            raise FileNotFoundError(f"path does not exist: {root}")
         if root.is_file():
-            if not root.is_symlink() and not is_excluded(Path(root.name), root.name, patterns):
+            if not is_excluded(Path(root.name), root.name, patterns):
                 found.append(root)
             continue
         _walk(root, include_hidden, patterns, max_depth, on_error or _raise, found)
-    return found
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for path in found:
+        if path not in seen:
+            seen.add(path)
+            unique.append(path)
+    return unique
 
 
 def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],

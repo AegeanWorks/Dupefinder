@@ -14,11 +14,13 @@ def format_size(size: int) -> str:
     if size < 1024:
         return f"{size} B"
     amount = float(size)
-    for unit in ("KiB", "MiB", "GiB", "TiB"):
+    for unit in ("KiB", "MiB", "GiB", "TiB", "PiB", "EiB"):
         amount /= 1024
-        if amount < 1024:
+        if amount < 1024 or unit == "EiB":
+            if round(amount, 1) >= 1024 and unit != "EiB":
+                continue
             return f"{amount:.1f} {unit}"
-    return f"{amount:.1f} PiB"
+    return f"{amount:.1f} EiB"
 
 
 def render_text(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:
@@ -40,7 +42,7 @@ def render_text(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:
         lines.append(f"   sha256: {group.digest}")
         lines.extend(f"   {path}" for path in group.paths)
         lines.append("")
-    return "\n".join(lines).rstrip()
+    return "\n".join(lines).rstrip("\n")
 
 
 def render_json(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:
@@ -94,8 +96,17 @@ def _keep_path(group: DuplicateGroup, strategy: str) -> Path:
 
 def redundant_paths(groups: Sequence[DuplicateGroup], keep: str = "first") -> list[Path]:
     """Every path except the one selected to keep in each group."""
+    if keep not in KEEP_STRATEGIES:
+        raise ValueError(f"unknown keep strategy: {keep}")
     redundant: list[Path] = []
     for group in groups:
+        if len(group.paths) <= 1:
+            continue
         kept = _keep_path(group, keep)
-        redundant.extend(path for path in group.paths if path != kept)
+        skipped = False
+        for path in group.paths:
+            if not skipped and path == kept:
+                skipped = True
+                continue
+            redundant.append(path)
     return redundant

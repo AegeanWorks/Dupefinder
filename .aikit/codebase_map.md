@@ -9,8 +9,8 @@
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
 - **Total Top-Level Functions**: `20`
-- **Total Class Methods**: `65`
-- **Total Source Lines**: `1050`
+- **Total Class Methods**: `75`
+- **Total Source Lines**: `1142`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `199` lines (`9080` bytes)
+**Size**: `205` lines (`9459` bytes)
 
 **Functions:**
 - `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
@@ -59,7 +59,7 @@
 ### [`dupefinder/hashing.py`](dupefinder/hashing.py)
 > *Streaming SHA-256 for candidate files.*
 
-**Size**: `15` lines (`456` bytes)
+**Size**: `17` lines (`634` bytes)
 
 **Functions:**
 - `def hash_file(path, chunk_size)` - *Return the SHA-256 hex digest of `path`, reading it in bounded chunks.*
@@ -80,7 +80,7 @@
 ### [`dupefinder/report.py`](dupefinder/report.py)
 > *Text, JSON and CSV renderings of duplicate groups.*
 
-**Size**: `101` lines (`3677` bytes)
+**Size**: `112` lines (`4068` bytes)
 
 **Functions:**
 - `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
@@ -95,7 +95,7 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `120` lines (`4823` bytes)
+**Size**: `126` lines (`4965` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
@@ -116,7 +116,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `362` lines (`15896` bytes)
+**Size**: `369` lines (`16191` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -153,6 +153,7 @@
   - Method `.test_keep_oldest_and_newest_use_file_times()`
   - Method `.test_keep_requires_redundant_list()`
   - Method `.test_keep_oldest_metadata_failure_exits_1()`
+  - Method `.test_empty_redundant_list_exits_2()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
   - Method `.test_version_matches_pyproject()`
@@ -166,7 +167,7 @@
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `190` lines (`7992` bytes)
+**Size**: `250` lines (`10965` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -194,5 +195,14 @@
   - Method `.test_max_depth_zero_skips_directory_files()`
   - Method `.test_max_depth_zero_keeps_an_explicit_file()`
   - Method `.test_format_size()`
+  - Method `.test_format_size_large_units()`
+  - Method `.test_format_size_rounding_carries_to_next_unit()`
+  - Method `.test_hash_file_rejects_non_positive_chunk_size()`
+  - Method `.test_broken_symlink_root_is_skipped()`
+  - Method `.test_scan_files_dedupes_overlapping_roots()`
+  - Method `.test_redundant_paths_validates_keep_even_when_empty()`
+  - Method `.test_redundant_paths_duplicate_entries()`
+  - Method `.test_redundant_singleton_oldest_does_not_stat()`
+  - Method `.test_render_text_preserves_trailing_space()`
 
 ---

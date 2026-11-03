@@ -133,7 +133,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Fix: pass an existing file or folder, e.g. `python -m dupefinder .`.",
               file=sys.stderr)
         return 2
-    if args.keep is not None and not args.redundant_list:
+    if args.redundant_list is not None and not args.redundant_list.strip():
+        print("Error: --redundant-list requires a non-empty FILE path", file=sys.stderr)
+        print("Why: an empty output path cannot be created.", file=sys.stderr)
+        print("Fix: pass a new file path, e.g. `--redundant-list redundant.txt`.",
+              file=sys.stderr)
+        return 2
+    if args.keep is not None and args.redundant_list is None:
         print("Error: --keep requires --redundant-list FILE", file=sys.stderr)
         print("Why: --keep chooses which copy the redundant list leaves out.",
               file=sys.stderr)

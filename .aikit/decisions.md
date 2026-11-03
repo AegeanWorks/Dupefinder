@@ -67,3 +67,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Explicit file roots that are symbolic links are already skipped, but a directory root passed as a symbolic link was still walked through `os.walk`, following the linked tree for that top level while inner links are skipped.
 - **Decision**: Check `root.is_symlink()` in `scan_files` before the file-or-walk branch and skip such roots, keeping the read-only never-follow-links contract for files and directories alike.
 - **Consequences**: Symlinked directory roots now yield no candidates instead of the linked tree's files. Broken links still report a missing path, and hidden-root handling is unchanged.
+
+### ADR-008: Swarm-verified correctness fixes without contract widening
+
+- **Date**: 2026-11-04
+- **Status**: Accepted
+- **Context**: A six-module analysis swarm reported defects with file, line and reproduction; main-session sampling reproduced the load-bearing ones (PiB label, chunk_size 0 digest, broken-symlink raise, overlapping-root duplicates, redundant-list keep/index/singleton, empty output path, trailing-space strip).
+- **Decision**: Fix only reproduced defects with failing-first tests: extend `format_size` through EiB with rounding carry, reject non-positive `chunk_size`, check `is_symlink` before `exists` for roots, dedupe `scan_files` output preserving order, validate `keep` upfront plus index-based exclusion with singleton short-circuit, reject empty `--redundant-list` with exit 2, and use `rstrip("\n")` in `render_text`. Filter-semantics widening, model invariant hardening, pipeline BrokenPipe handling and doc packaging are filed as deferred.
+- **Consequences**: Reports stop overstating petabyte-scale space, hashing never returns an empty digest for content, broken-symlink roots skip per README, overlapping roots never double-list, and empty output paths fail loudly. Ten new tests pin the fixes; the suite runs 69 tests green with 4/4 AIKit gates.

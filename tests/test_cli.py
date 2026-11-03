@@ -307,6 +307,13 @@ class CliTests(unittest.TestCase):
         self.assertIn("cannot read timestamps", errors)
         self.assertFalse(output.exists())
 
+    def test_empty_redundant_list_exits_2(self):
+        self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        code, _, errors = self.run_main("--redundant-list", "", str(self.root))
+        self.assertEqual(code, 2)
+        self.assertIn("redundant-list", errors)
+
     def test_csv_and_json_are_mutually_exclusive(self):
         errors = io.StringIO()
         with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:
@@ -318,7 +325,7 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output), self.assertRaises(SystemExit) as caught:
             main(["--version"])
         self.assertEqual(caught.exception.code, 0)
-        self.assertIn("dupefinder 0.5.0", output.getvalue())
+        self.assertIn(f"dupefinder {__version__}", output.getvalue())
 
     def test_version_matches_pyproject(self):
         pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
