@@ -248,3 +248,42 @@ class ScannerTests(unittest.TestCase):
             [DuplicateGroup("d", 1, (Path("/tmp/a "), Path("/tmp/b")))], [Path("/tmp")])
         self.assertIn("a ", text)
         self.assertNotIn("a\n", text.split("sha256")[1])
+
+    def test_format_size_supports_zib_and_yib(self):
+        self.assertEqual(format_size(1024 ** 7), "1.0 ZiB")
+        self.assertEqual(format_size(1024 ** 8), "1.0 YiB")
+        self.assertNotIn("1024.0", format_size(1024 ** 7))
+
+    def test_format_size_rejects_bad_input(self):
+        for bad in (-1, True, "1024"):
+            with self.assertRaises(ValueError, msg=f"size={bad!r}"):
+                format_size(bad)
+
+    def test_model_rejects_invalid_shapes(self):
+        from dupefinder.model import DuplicateGroup
+        with self.assertRaises(ValueError):
+            DuplicateGroup("", 4, (Path("a"), Path("b")))
+        with self.assertRaises(ValueError):
+            DuplicateGroup("d", -1, (Path("a"), Path("b")))
+        with self.assertRaises(ValueError):
+            DuplicateGroup("d", 4, ())
+        with self.assertRaises(ValueError):
+            DuplicateGroup("d", 4, (Path("a"), "b"))
+
+    def test_special_files_are_skipped_in_walk(self):
+        from dupefinder import scanner as scanner_mod
+        target = self.write("target.txt", b"x")
+        special = self.root / "pipe"
+        real_is_symlink = Path.is_symlink
+        with mock.patch.object(Path, "is_symlink", autospec=True) as is_link, \
+                mock.patch.object(scanner_mod, "_is_special") as is_special:
+            is_link.side_effect = lambda self: real_is_symlink(self)
+            is_special.side_effect = lambda path: path == special
+            self.assertEqual(scan_files([self.root]), [target])
+
+    def test_explicit_special_root_is_skipped(self):
+        from dupefinder import scanner as scanner_mod
+        special = self.root / "pipe"
+        special.touch()
+        with mock.patch.object(scanner_mod, "_is_special", return_value=True):
+            self.assertEqual(scan_files([special]), [])

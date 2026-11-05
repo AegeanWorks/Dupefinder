@@ -75,3 +75,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: A six-module analysis swarm reported defects with file, line and reproduction; main-session sampling reproduced the load-bearing ones (PiB label, chunk_size 0 digest, broken-symlink raise, overlapping-root duplicates, redundant-list keep/index/singleton, empty output path, trailing-space strip).
 - **Decision**: Fix only reproduced defects with failing-first tests: extend `format_size` through EiB with rounding carry, reject non-positive `chunk_size`, check `is_symlink` before `exists` for roots, dedupe `scan_files` output preserving order, validate `keep` upfront plus index-based exclusion with singleton short-circuit, reject empty `--redundant-list` with exit 2, and use `rstrip("\n")` in `render_text`. Filter-semantics widening, model invariant hardening, pipeline BrokenPipe handling and doc packaging are filed as deferred.
 - **Consequences**: Reports stop overstating petabyte-scale space, hashing never returns an empty digest for content, broken-symlink roots skip per README, overlapping roots never double-list, and empty output paths fail loudly. Ten new tests pin the fixes; the suite runs 69 tests green with 4/4 AIKit gates.
+
+### ADR-009: Post-push hardening pass over the last three pushes
+
+- **Date**: 2026-11-05
+- **Status**: Accepted
+- **Context**: Verification of the last three pushes (symlink-root guard, swarm correctness fixes, brand reseed) found a CLI/scanner split on broken-symlink roots, an EiB display/parse gap, an unguarded pipe close, unvalidated model shapes, and a POSIX-only hang risk on FIFOs/sockets/devices.
+- **Decision**: Skip broken-symlink roots in the CLI missing check to match scan_files; parse E/EB/EiB and render through YiB with rounding carry; silence BrokenPipeError in main; validate DuplicateGroup and format_size inputs; skip FIFO/socket/device nodes in the walk and for explicit roots.
+- **Consequences**: Broken links yield no candidates instead of exit 2, exabyte filters parse, piped runs exit quietly, invalid groups fail loudly at construction, and special files never block a scan.

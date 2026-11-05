@@ -11,16 +11,18 @@ from dupefinder.model import DuplicateGroup
 
 def format_size(size: int) -> str:
     """A compact binary-unit size such as `1.5 KiB`."""
+    if isinstance(size, bool) or not isinstance(size, int) or size < 0:
+        raise ValueError(f"size must be a non-negative integer, got {size!r}")
     if size < 1024:
         return f"{size} B"
     amount = float(size)
-    for unit in ("KiB", "MiB", "GiB", "TiB", "PiB", "EiB"):
+    for unit in ("KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"):
         amount /= 1024
-        if amount < 1024 or unit == "EiB":
-            if round(amount, 1) >= 1024 and unit != "EiB":
+        if amount < 1024 or unit == "YiB":
+            if round(amount, 1) >= 1024 and unit != "YiB":
                 continue
             return f"{amount:.1f} {unit}"
-    return f"{amount:.1f} EiB"
+    return f"{amount:.1f} YiB"
 
 
 def render_text(groups: Sequence[DuplicateGroup], roots: Sequence[Path]) -> str:

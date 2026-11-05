@@ -314,6 +314,29 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("redundant-list", errors)
 
+    def test_broken_symlink_root_is_skipped_not_missing(self):
+        link = self.root / "link.txt"
+        with mock.patch.object(Path, "exists", autospec=True) as exists, \
+                mock.patch.object(Path, "is_symlink", autospec=True) as is_link:
+            exists.side_effect = lambda self: False if self == link else True
+            is_link.side_effect = lambda self: True if self == link else False
+            code, output, _ = self.run_main(str(link))
+        self.assertEqual(code, 0)
+        self.assertIn("No duplicate files found", output)
+
+    def test_min_size_accepts_exabyte_suffix(self):
+        from dupefinder.cli import _size
+        self.assertEqual(_size("1E"), 1024 ** 6)
+        self.assertEqual(_size("2EiB"), 2 * 1024 ** 6)
+
+    def test_broken_pipe_exits_quietly(self):
+        self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        with mock.patch("dupefinder.cli.render_text",
+                        side_effect=BrokenPipeError("closed")):
+            code, _, _ = self.run_main(str(self.root))
+        self.assertEqual(code, 0)
+
     def test_csv_and_json_are_mutually_exclusive(self):
         errors = io.StringIO()
         with redirect_stderr(errors), self.assertRaises(SystemExit) as caught:

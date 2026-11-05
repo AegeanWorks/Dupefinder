@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
-- **Total Top-Level Functions**: `20`
-- **Total Class Methods**: `75`
-- **Total Source Lines**: `1142`
+- **Total Top-Level Functions**: `22`
+- **Total Class Methods**: `84`
+- **Total Source Lines**: `1255`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `205` lines (`9459` bytes)
+**Size**: `220` lines (`10088` bytes)
 
 **Functions:**
 - `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
@@ -41,6 +41,7 @@
 - `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
 - `def _write_redundant_list(path, groups, keep)` - *Write all but the kept path per group to a new file; return an exit code.*
 - `def main(argv)` - *Run one scan; returns the process exit code.*
+- `def _run(argv)` - *Inner scan logic so `main` can silence `BrokenPipeError`.*
 
 ---
 
@@ -69,10 +70,11 @@
 ### [`dupefinder/model.py`](dupefinder/model.py)
 > *Data reported for one set of byte-identical files.*
 
-**Size**: `18` lines (`431` bytes)
+**Size**: `30` lines (`1215` bytes)
 
 **Classes:**
 - `class DuplicateGroup` - *Files with the same size and SHA-256 digest.*
+  - Method `.__post_init__()` - *Reject shapes that would make `wasted_bytes` or sorting lie.*
   - Property `.wasted_bytes` - *Space reclaimable by keeping one copy.*
 
 ---
@@ -80,7 +82,7 @@
 ### [`dupefinder/report.py`](dupefinder/report.py)
 > *Text, JSON and CSV renderings of duplicate groups.*
 
-**Size**: `112` lines (`4068` bytes)
+**Size**: `114` lines (`4233` bytes)
 
 **Functions:**
 - `def format_size(size)` - *A compact binary-unit size such as `1.5 KiB`.*
@@ -95,10 +97,11 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `126` lines (`4965` bytes)
+**Size**: `148` lines (`5787` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
+- `def _is_special(path)` - *Whether `path` is a FIFO, socket or device node that must never be hashed.*
 - `def _walk(root, include_hidden, patterns, max_depth, on_error, found)` - *Append regular files under one directory, skipping hidden, excluded and symlinked entries.*
 - `def _raise(error)` - *Default walk error handler: surface the failure instead of hiding it.*
 - `def _report(error, on_error)` - *Send a recoverable per-file error to the caller, or re-raise when it has no handler.*
@@ -116,7 +119,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `369` lines (`16191` bytes)
+**Size**: `392` lines (`17279` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -154,6 +157,9 @@
   - Method `.test_keep_requires_redundant_list()`
   - Method `.test_keep_oldest_metadata_failure_exits_1()`
   - Method `.test_empty_redundant_list_exits_2()`
+  - Method `.test_broken_symlink_root_is_skipped_not_missing()`
+  - Method `.test_min_size_accepts_exabyte_suffix()`
+  - Method `.test_broken_pipe_exits_quietly()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
   - Method `.test_version_matches_pyproject()`
@@ -167,7 +173,7 @@
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `250` lines (`10965` bytes)
+**Size**: `289` lines (`12774` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -204,5 +210,10 @@
   - Method `.test_redundant_paths_duplicate_entries()`
   - Method `.test_redundant_singleton_oldest_does_not_stat()`
   - Method `.test_render_text_preserves_trailing_space()`
+  - Method `.test_format_size_supports_zib_and_yib()`
+  - Method `.test_format_size_rejects_bad_input()`
+  - Method `.test_model_rejects_invalid_shapes()`
+  - Method `.test_special_files_are_skipped_in_walk()`
+  - Method `.test_explicit_special_root_is_skipped()`
 
 ---

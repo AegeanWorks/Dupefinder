@@ -26,6 +26,7 @@ _SIZE_UNITS = {
     "g": 1024 ** 3, "gb": 1024 ** 3, "gib": 1024 ** 3,
     "t": 1024 ** 4, "tb": 1024 ** 4, "tib": 1024 ** 4,
     "p": 1024 ** 5, "pb": 1024 ** 5, "pib": 1024 ** 5,
+    "e": 1024 ** 6, "eb": 1024 ** 6, "eib": 1024 ** 6,
 }
 
 
@@ -40,7 +41,7 @@ def _size(value: str) -> int:
         multiplier = _SIZE_UNITS[unit]
     except KeyError as error:
         raise argparse.ArgumentTypeError(
-            f"unknown size unit '{unit}'; use B, K/KiB, M/MiB, G/GiB, T/TiB or P/PiB"
+            f"unknown size unit '{unit}'; use B, K/KiB, M/MiB, G/GiB, T/TiB, P/PiB or E/EiB"
         ) from error
     return int(match.group(1)) * multiplier
 
@@ -124,9 +125,23 @@ def _write_redundant_list(path: Path, groups: Sequence[DuplicateGroup],
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one scan; returns the process exit code."""
+    try:
+        return _run(argv)
+    except BrokenPipeError:
+        # Downstream closed the pipe (e.g. `| head`): exit quietly
+        # instead of printing a traceback. No descriptor cleanup here:
+        # `_run` returns immediately so nothing else writes.
+        return 0
+
+
+def _run(argv: Sequence[str] | None = None) -> int:
+    """Inner scan logic so `main` can silence `BrokenPipeError`."""
     args = build_parser().parse_args(argv)
     roots = [Path(item) for item in (args.paths or ["."])]
-    missing = [str(path) for path in roots if not path.exists()]
+    # A symlink root (including a broken link) is skipped by the scanner,
+    # so it must not count as a missing path here.
+    missing = [str(path) for path in roots
+               if not path.exists() and not path.is_symlink()]
     if missing:
         print(f"Error: path not found: {', '.join(missing)}", file=sys.stderr)
         print("Why: dupefinder scans existing files and folders only.", file=sys.stderr)

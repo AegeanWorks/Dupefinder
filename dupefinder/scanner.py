@@ -17,13 +17,14 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
     """Every regular, non-symlink file under `roots`, in stable order.
 
     A root that is itself a symbolic link is skipped, matching the
-    handling of symlinked entries found while walking.
+    handling of symlinked entries found while walking. FIFO, socket and
+    device nodes are skipped as well so a scan never blocks on them.
     """
     found: list[Path] = []
     patterns = normalize_patterns(exclude)
     for root in roots:
         root = Path(root)
-        if root.is_symlink():
+        if root.is_symlink() or _is_special(root):
             continue
         if not root.exists():
             raise FileNotFoundError(f"path does not exist: {root}")
@@ -31,6 +32,8 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
             if not is_excluded(Path(root.name), root.name, patterns):
                 found.append(root)
             continue
+        if not root.is_dir():
+            raise FileNotFoundError(f"path does not exist: {root}")
         _walk(root, include_hidden, patterns, max_depth, on_error or _raise, found)
     seen: set[Path] = set()
     unique: list[Path] = []
@@ -39,6 +42,24 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
             seen.add(path)
             unique.append(path)
     return unique
+
+
+def _is_special(path: Path) -> bool:
+    """Whether `path` is a FIFO, socket or device node that must never be hashed.
+
+    Regular unreadable files still return `False` here so they flow into the
+    normal `stat`/hash warning path instead of being silently skipped.
+    """
+    for probe in ("is_fifo", "is_socket", "is_block_device", "is_char_device"):
+        check = getattr(path, probe, None)
+        if check is None:
+            continue
+        try:
+            if check():
+                return True
+        except OSError:
+            return False
+    return False
 
 
 def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],
@@ -66,8 +87,9 @@ def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],
             if is_excluded(relative, name, patterns):
                 continue
             path = current / name
-            if not path.is_symlink():
-                found.append(path)
+            if path.is_symlink() or _is_special(path):
+                continue
+            found.append(path)
 
 
 def _raise(error: OSError) -> None:

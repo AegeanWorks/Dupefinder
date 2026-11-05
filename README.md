@@ -111,9 +111,9 @@ Use it in CI, failing when copies exist:
 python -m dupefinder . --fail-on-duplicates
 ```
 
-`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped, and a root passed explicitly as a symbolic link is skipped as well.
+`dupefinder` never deletes, moves, or rewrites a file. It groups candidates by exact size, hashes only same-size files with SHA-256, and counts hard links once. Inside scanned folders, entries whose names start with `.` are skipped unless `--include-hidden` is passed; a hidden path passed explicitly is still scanned. Symbolic links inside scanned folders are skipped, and a root passed explicitly as a symbolic link is skipped as well (including a broken link, which yields no candidates instead of an error). FIFO, socket and device nodes are skipped so a scan never blocks on them.
 
-`--min-size` and `--max-size` accept whole numbers with optional `B`, `K`/`KiB`, `M`/`MiB`, `G`/`GiB`, `T`/`TiB` or `P`/`PiB` suffixes. All suffixes are 1024-based, so `1K` means 1024 bytes.
+`--min-size` and `--max-size` accept whole numbers with optional `B`, `K`/`KiB`, `M`/`MiB`, `G`/`GiB`, `T`/`TiB`, `P`/`PiB` or `E`/`EiB` suffixes. All suffixes are 1024-based, so `1K` means 1024 bytes.
 
 `--exclude` is repeatable and case-sensitive. A pattern without `/` matches a file or folder name; a pattern with `/` matches the POSIX-style path relative to each root, and `*` also matches `/`. `--exclude-from FILE` reads one pattern per line, ignores blank lines and lines starting with `#`, and may be repeated. `--max-depth 1` includes files directly in each root but not subfolders; `--max-depth 0` scans only files passed explicitly. `--csv` emits the columns `sha256,size,count,wasted_bytes,path`.
 
