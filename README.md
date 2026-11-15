@@ -8,6 +8,8 @@
 
 Read-only duplicate file finder that groups byte-identical files by size and SHA-256 and reports reclaimable space.
 
+> **Archived**: Duplicate finder shipped and fully audited; no further work planned (archived 2026-11-15). This project is read-only; its GitHub repository is archived.
+
 ## ⚡ 30-Second Cold-Start Quick Reference
 
 - **Runtime Prerequisites**: Python 3.10 or newer; no third-party packages.

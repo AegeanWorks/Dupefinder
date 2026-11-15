@@ -29,5 +29,11 @@
   "ui_checked_at": "2026-11-14",
   "ui_source": "detected",
   "topics_source": "manual",
-  "topics_reviewed_at": "2026-11-01"
+  "topics_reviewed_at": "2026-11-01",
+  "archived": true,
+  "archived_at": "2026-11-15",
+  "archive_reason": "Duplicate finder shipped and fully audited; no further work planned",
+  "archive_repo": "AegeanWorks/Dupefinder",
+  "archive_description": "[ARCHIVED] Read-only duplicate file finder that groups byte-identical files by size and SHA-256 and reports reclaimable space.",
+  "archive_origin": "projects/dupefinder"
 }
