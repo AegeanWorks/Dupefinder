@@ -1,51 +1,18 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "dupefinder-008",
+    "task_id": "dupefinder-009",
     "last_phase": "in_progress",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1794754226.3255904,
+    "updated_at": 1794756204.3232877,
     "owner": "vibe:1",
     "started_by": "vibe:1",
     "continuations": [],
-    "completed_at": 1794754324.6200814,
-    "completed_head": "b083172c145a6a58a43d749f8ad2d31a339a603c"
+    "completed_at": 1794756204.5854528,
+    "completed_head": "daf7d704f84debde82e97deb020cfe4d91ec336c"
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 4",
-      "phase_num": 3,
-      "description": "Reforge stage 4: window 12, 3 commit(s), 16 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793291110.9060955,
-      "timestamp_str": "2026-10-29 19:25:10",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 5",
-      "phase_num": 3,
-      "description": "Reforge stage 5: window 13, 1 commit(s), 9 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793291173.1894612,
-      "timestamp_str": "2026-10-29 19:26:13",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 5",
-      "phase_num": 3,
-      "description": "Reforge stage 5: run stopped at stage 5; resume it with `reforge resume`",
-      "files_affected": [],
-      "status": "suspended",
-      "timestamp": 1793291249.857596,
-      "timestamp_str": "2026-10-29 19:27:29",
-      "agent": "opencode"
-    },
     {
       "task_id": "dupefinder-007",
       "phase": "in_progress",
@@ -258,6 +225,52 @@
       "timestamp": 1794756150.869454,
       "timestamp_str": "2026-11-15 18:22:30",
       "agent": "unidentified"
+    },
+    {
+      "task_id": "dupefinder-009",
+      "phase": "in_progress",
+      "phase_num": 2,
+      "description": "[1/1] Apply the reforge run-2 stage-1 fd-leak repair",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794756204.0543606,
+      "timestamp_str": "2026-11-15 18:23:24",
+      "agent": "vibe:1",
+      "impact_assessment": {
+        "why": "The run-2 stage-1 review found _silence_pipe leaking the devnull descriptor after dup2; the fix is committed as a27dccd and needs ledger ownership",
+        "benefits": "Helper closes its descriptor; zero behavior change",
+        "risks": "contract: pipe exit stays 0; dependency: stdlib os only; concurrency: none; state: no files written",
+        "mitigation": "Exact-once validated replacement applied via reforge fix; tests ran green inside the repair; check --strict after ledger completion"
+      },
+      "plan_digest": "1f3ee9b8299f1b5acd25044ad9c39bdf7a0dc3d37739e9491b0f59e32b3c814f"
+    },
+    {
+      "task_id": "dupefinder-009",
+      "phase": "in_progress",
+      "phase_num": 4,
+      "description": "[1/1] Phase 4: repair committed in a27dccd; tests green in the fix run; 4/4 gates verified after; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794756204.3232877,
+      "timestamp_str": "2026-11-15 18:23:24",
+      "agent": "vibe:1",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "dupefinder-009",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'dupefinder-009' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794756204.604625,
+      "timestamp_str": "2026-11-15 18:23:24",
+      "agent": "vibe:1",
+      "delivery": {
+        "roots": [
+          "."
+        ],
+        "forced": false
+      }
     }
   ]
 }
