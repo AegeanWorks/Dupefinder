@@ -151,7 +151,11 @@ def _silence_pipe() -> int:
         # Captures and embedded runs have no usable descriptor, so there
         # is nothing to redirect and the shutdown flush fails silently.
         return 0
-    os.dup2(os.open(os.devnull, os.O_WRONLY), stdout_fd)
+    devnull_fd = os.open(os.devnull, os.O_WRONLY)
+    try:
+        os.dup2(devnull_fd, stdout_fd)
+    finally:
+        os.close(devnull_fd)
     return 0
 
 

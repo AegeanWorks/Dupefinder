@@ -14,49 +14,6 @@
   },
   "checkpoints": [
     {
-      "task_id": "dupefinder-006",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793259434.0605657,
-      "timestamp_str": "2026-10-29 10:37:14",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-006",
-      "phase": "phase 3",
-      "phase_num": 3,
-      "description": "[1/1] Implemented --keep first/shortest/oldest/newest with one metadata read per group, deterministic ties, ADR-006, docs and 58 passing tests; Ruff clean",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793259456.7380812,
-      "timestamp_str": "2026-10-29 10:37:36",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-006",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Phase 4: 4/4 gates pass (test, hygiene, guidelines, secrets); checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793259465.5752785,
-      "timestamp_str": "2026-10-29 10:37:45",
-      "agent": "opencode:1"
-    },
-    {
-      "task_id": "dupefinder-006",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'dupefinder-006' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793259487.3200116,
-      "timestamp_str": "2026-10-29 10:38:07",
-      "agent": "opencode:1"
-    },
-    {
       "task_id": "reforge:run-1",
       "phase": "reforge stage 1",
       "phase_num": 3,
@@ -257,6 +214,50 @@
         ],
         "forced": false
       }
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=3, step=3, stop=None)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794755726.6296482,
+      "timestamp_str": "2026-11-15 18:15:26",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 3, 3 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794755744.3494742,
+      "timestamp_str": "2026-11-15 18:15:44",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: stage 1 host review reviewed; run active; coverage 23/23",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794755838.7212439,
+      "timestamp_str": "2026-11-15 18:17:18",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: stage 1 host review reviewed; run active; coverage 23/23",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794755859.3479645,
+      "timestamp_str": "2026-11-15 18:17:39",
+      "agent": "unidentified"
     }
   ]
 }

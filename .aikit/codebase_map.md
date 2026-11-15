@@ -10,7 +10,7 @@
 - **Total Classes**: `3`
 - **Total Top-Level Functions**: `23`
 - **Total Class Methods**: `86`
-- **Total Source Lines**: `1305`
+- **Total Source Lines**: `1309`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`11` module(s))
@@ -37,7 +37,7 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `241` lines (`10870` bytes)
+**Size**: `245` lines (`10953` bytes)
 
 **Functions:**
 - `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
