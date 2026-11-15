@@ -3,25 +3,16 @@
   "active_task": {
     "task_id": "dupefinder-008",
     "last_phase": "in_progress",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1794754226.3255904,
     "owner": "vibe:1",
     "started_by": "vibe:1",
-    "continuations": []
+    "continuations": [],
+    "completed_at": 1794754324.6200814,
+    "completed_head": "b083172c145a6a58a43d749f8ad2d31a339a603c"
   },
   "checkpoints": [
-    {
-      "task_id": "dupefinder-006",
-      "phase": "phase 3",
-      "phase_num": 3,
-      "description": "[1/1] Implemented --keep first/shortest/oldest/newest with deterministic ties, ADR-006, docs and 58 passing tests; Ruff clean and shortest strategy smoke-tested",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793259426.5984535,
-      "timestamp_str": "2026-10-29 10:37:06",
-      "agent": "opencode:1"
-    },
     {
       "task_id": "dupefinder-006",
       "phase": "phase 4",
@@ -250,6 +241,22 @@
       "timestamp_str": "2026-11-15 17:50:26",
       "agent": "vibe:1",
       "checklists": "passed"
+    },
+    {
+      "task_id": "dupefinder-008",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'dupefinder-008' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794754324.642687,
+      "timestamp_str": "2026-11-15 17:52:04",
+      "agent": "vibe:1",
+      "delivery": {
+        "roots": [
+          "."
+        ],
+        "forced": false
+      }
     }
   ]
 }
