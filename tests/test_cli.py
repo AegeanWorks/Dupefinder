@@ -1,6 +1,7 @@
 """Behavior of the command-line interface."""
 
 import csv
+import errno
 import io
 import json
 import os
@@ -334,6 +335,14 @@ class CliTests(unittest.TestCase):
         self.write("b.txt", b"same")
         with mock.patch("dupefinder.cli.render_text",
                         side_effect=BrokenPipeError("closed")):
+            code, _, _ = self.run_main(str(self.root))
+        self.assertEqual(code, 0)
+
+    def test_windows_closed_pipe_error_exits_quietly(self):
+        self.write("a.txt", b"same")
+        self.write("b.txt", b"same")
+        with mock.patch("dupefinder.cli.render_text",
+                        side_effect=OSError(errno.EINVAL, "Invalid argument")):
             code, _, _ = self.run_main(str(self.root))
         self.assertEqual(code, 0)
 

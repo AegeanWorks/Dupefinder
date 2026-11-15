@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `11`
 - **Total Classes**: `3`
-- **Total Top-Level Functions**: `22`
-- **Total Class Methods**: `84`
-- **Total Source Lines**: `1255`
+- **Total Top-Level Functions**: `23`
+- **Total Class Methods**: `86`
+- **Total Source Lines**: `1305`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`11` module(s))
@@ -37,7 +37,7 @@
 ### [`dupefinder/cli.py`](dupefinder/cli.py)
 > *Command-line entry point for dupefinder.*
 
-**Size**: `220` lines (`10088` bytes)
+**Size**: `241` lines (`10870` bytes)
 
 **Functions:**
 - `def _size(value)` - *Parse a byte size such as `500`, `10K` or `1MiB`; suffixes are 1024-based.*
@@ -45,6 +45,7 @@
 - `def build_parser()` - *The CLI grammar, kept separate so tests can inspect it.*
 - `def _write_redundant_list(path, groups, keep)` - *Write all but the kept path per group to a new file; return an exit code.*
 - `def main(argv)` - *Run one scan; returns the process exit code.*
+- `def _silence_pipe()` - *Point stdout at devnull and exit quietly after a broken pipe.*
 - `def _run(argv)` - *Inner scan logic so `main` can silence `BrokenPipeError`.*
 
 ---
@@ -101,7 +102,7 @@
 ### [`dupefinder/scanner.py`](dupefinder/scanner.py)
 > *Read-only filesystem walk and duplicate grouping.*
 
-**Size**: `148` lines (`5787` bytes)
+**Size**: `146` lines (`5775` bytes)
 
 **Functions:**
 - `def scan_files(roots, *, include_hidden, exclude, max_depth, on_error)` - *Every regular, non-symlink file under `roots`, in stable order.*
@@ -123,7 +124,7 @@
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *Behavior of the command-line interface.*
 
-**Size**: `392` lines (`17279` bytes)
+**Size**: `401` lines (`17650` bytes)
 
 **Classes:**
 - `class CliTests`
@@ -164,6 +165,7 @@
   - Method `.test_broken_symlink_root_is_skipped_not_missing()`
   - Method `.test_min_size_accepts_exabyte_suffix()`
   - Method `.test_broken_pipe_exits_quietly()`
+  - Method `.test_windows_closed_pipe_error_exits_quietly()`
   - Method `.test_csv_and_json_are_mutually_exclusive()`
   - Method `.test_version_prints_the_package_version()`
   - Method `.test_version_matches_pyproject()`
@@ -177,7 +179,7 @@
 ### [`tests/test_scanner.py`](tests/test_scanner.py)
 > *Behavior of the read-only scanner.*
 
-**Size**: `289` lines (`12774` bytes)
+**Size**: `311` lines (`13722` bytes)
 
 **Classes:**
 - `class ScannerTests`
@@ -219,5 +221,6 @@
   - Method `.test_model_rejects_invalid_shapes()`
   - Method `.test_special_files_are_skipped_in_walk()`
   - Method `.test_explicit_special_root_is_skipped()`
+  - Method `.test_is_special_uses_a_single_lstat()`
 
 ---

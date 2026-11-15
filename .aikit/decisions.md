@@ -83,3 +83,11 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: Verification of the last three pushes (symlink-root guard, swarm correctness fixes, brand reseed) found a CLI/scanner split on broken-symlink roots, an EiB display/parse gap, an unguarded pipe close, unvalidated model shapes, and a POSIX-only hang risk on FIFOs/sockets/devices.
 - **Decision**: Skip broken-symlink roots in the CLI missing check to match scan_files; parse E/EB/EiB and render through YiB with rounding carry; silence BrokenPipeError in main; validate DuplicateGroup and format_size inputs; skip FIFO/socket/device nodes in the walk and for explicit roots.
 - **Consequences**: Broken links yield no candidates instead of exit 2, exabyte filters parse, piped runs exit quietly, invalid groups fail loudly at construction, and special files never block a scan.
+
+### ADR-010: Quiet pipe exits on Windows and a one-syscall special-file check
+
+- **Date**: 2026-11-15
+- **Status**: Accepted
+- **Context**: A reforge stage-6 review recorded two findings: `main` caught only `BrokenPipeError`, but Windows reports a closed downstream pipe as `OSError` with errno EINVAL, and the interpreter's shutdown stdout flush can still hit the broken pipe on any platform; and `_is_special` paid up to four separate `stat()` calls per candidate on top of the `is_symlink()` stat.
+- **Decision**: `main` now also treats `OSError` with errno EPIPE or EINVAL as a quiet pipe exit and redirects stdout to `os.devnull` in both branches; other errnos keep propagating. `_is_special` decides from a single no-follow `lstat` via `stat.S_IFMT` against FIFO/socket/block/char modes.
+- **Consequences**: `dupefinder | head` exits quietly on Windows and POSIX alike with exit code 0; directory enumeration drops from up to five stats per file to two; unreadable regular files still reach the normal warning path; two tests pin the EINVAL exit and the single-lstat check.

@@ -1,6 +1,8 @@
 """Command-line entry point for dupefinder."""
 
 import argparse
+import errno
+import os
 import re
 import sys
 from collections.abc import Sequence
@@ -129,9 +131,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run(argv)
     except BrokenPipeError:
         # Downstream closed the pipe (e.g. `| head`): exit quietly
-        # instead of printing a traceback. No descriptor cleanup here:
-        # `_run` returns immediately so nothing else writes.
+        # instead of printing a traceback. Redirect stdout to devnull
+        # so the interpreter's shutdown flush cannot raise again.
+        return _silence_pipe()
+    except OSError as error:
+        # Windows reports a closed downstream pipe as EINVAL (or EPIPE),
+        # not as BrokenPipeError; real report failures keep their own
+        # errno and still surface below.
+        if error.errno in (errno.EPIPE, errno.EINVAL):
+            return _silence_pipe()
+        raise
+
+
+def _silence_pipe() -> int:
+    """Point stdout at devnull and exit quietly after a broken pipe."""
+    try:
+        stdout_fd = sys.stdout.fileno()
+    except (AttributeError, ValueError):
+        # Captures and embedded runs have no usable descriptor, so there
+        # is nothing to redirect and the shutdown flush fails silently.
         return 0
+    os.dup2(os.open(os.devnull, os.O_WRONLY), stdout_fd)
+    return 0
 
 
 def _run(argv: Sequence[str] | None = None) -> int:

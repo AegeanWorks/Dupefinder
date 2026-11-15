@@ -1,6 +1,7 @@
 """Behavior of the read-only scanner."""
 
 import hashlib
+import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -287,3 +288,24 @@ class ScannerTests(unittest.TestCase):
         special.touch()
         with mock.patch.object(scanner_mod, "_is_special", return_value=True):
             self.assertEqual(scan_files([special]), [])
+
+    def test_is_special_uses_a_single_lstat(self):
+        from dupefinder import scanner as scanner_mod
+
+        class FakeStat:
+            def __init__(self, mode):
+                self.st_mode = mode
+
+        path = self.write("a.bin", b"x")
+        fifo = FakeStat(stat.S_IFIFO | 0o444)
+        regular = FakeStat(stat.S_IFREG | 0o644)
+        with mock.patch.object(Path, "lstat", autospec=True,
+                               return_value=fifo) as lstat:
+            self.assertTrue(scanner_mod._is_special(path))
+            self.assertEqual(lstat.call_count, 1)
+        with mock.patch.object(Path, "lstat", autospec=True,
+                               return_value=regular):
+            self.assertFalse(scanner_mod._is_special(path))
+        with mock.patch.object(Path, "lstat", autospec=True,
+                               side_effect=OSError("stat failed")):
+            self.assertFalse(scanner_mod._is_special(path))

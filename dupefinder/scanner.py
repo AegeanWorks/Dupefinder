@@ -1,6 +1,7 @@
 """Read-only filesystem walk and duplicate grouping."""
 
 import os
+import stat
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -47,19 +48,16 @@ def scan_files(roots: Sequence[Path], *, include_hidden: bool = False,
 def _is_special(path: Path) -> bool:
     """Whether `path` is a FIFO, socket or device node that must never be hashed.
 
-    Regular unreadable files still return `False` here so they flow into the
-    normal `stat`/hash warning path instead of being silently skipped.
+    One no-follow `lstat` decides, so directory enumeration pays a single
+    syscall for the check. Regular unreadable files still return `False`
+    here so they flow into the normal `stat`/hash warning path instead of
+    being silently skipped.
     """
-    for probe in ("is_fifo", "is_socket", "is_block_device", "is_char_device"):
-        check = getattr(path, probe, None)
-        if check is None:
-            continue
-        try:
-            if check():
-                return True
-        except OSError:
-            return False
-    return False
+    try:
+        mode = path.lstat().st_mode
+    except OSError:
+        return False
+    return stat.S_IFMT(mode) in (stat.S_IFIFO, stat.S_IFSOCK, stat.S_IFBLK, stat.S_IFCHR)
 
 
 def _walk(root: Path, include_hidden: bool, patterns: Sequence[str],
